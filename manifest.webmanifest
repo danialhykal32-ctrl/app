@@ -1,0 +1,17 @@
+{
+  "name": "BlackFox WiFi",
+  "short_name": "BlackFox",
+  "description": "WiFi asrama BlackFoxCyber: log masuk, kuota, pakej & BlackFox AI",
+  "id": "./",
+  "start_url": "./?src=app",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "icons": [
+    {"src": "bfc180.png", "sizes": "180x180", "type": "image/png"},
+    {"src": "bfc512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "bfc512m.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

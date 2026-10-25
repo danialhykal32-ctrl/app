@@ -1,0 +1,47 @@
+name: Pemantau 24 Jam
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pemantau
+  cancel-in-progress: false
+
+jobs:
+  pantau:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/pemantau
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Status semakan lepas (gagal berturut-turut / amaran sudah dihantar) supaya tidak spam
+      - name: Ambil status lepas
+        uses: actions/cache/restore@v4
+        with:
+          path: .pemantau-status
+          key: pemantau-${{ github.run_id }}
+          restore-keys: pemantau-
+
+      - name: Semak app, Web App & router
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT: ${{ secrets.TG_CHAT }}
+        run: node .github/pemantau/pemantau.js
+
+      - name: Simpan status
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: .pemantau-status
+          key: pemantau-${{ github.run_id }}

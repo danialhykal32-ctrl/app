@@ -41,6 +41,7 @@
 
   var ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && 'ontouchend' in document);
   var safari = ios && !/CriOS|FxiOS|EdgiOS|GSA|Instagram|FBAN|FBAV|Line\//.test(ua);
+  $('sI').querySelector('ol').innerHTML = '<li>Tekan <b>•••</b> atau <b>≡</b> di bar alamat</li><li>Pilih <b>Share</b></li><li>Pilih <b>Add to Home Screen</b></li><li>Tekan <b>Add</b></li>';
   if (safari) setTimeout(function () { $('sI').className = 'sheet on'; }, 3000);
   $('iOk').addEventListener('click', function () { tolak('sI'); });
 })();

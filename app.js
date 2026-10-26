@@ -42,6 +42,7 @@
     card: P('<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M14 10h4M14 14h4"/>'),
     lock: P('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'),
     alert: P('<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/>'),
+    exit: P('<path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4"/><path d="M15 8l4 4-4 4M19 12H9"/>'),
     w_cerah: P('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
     w_awan: P('<path d="M8 4.5a3.5 3.5 0 0 1 5.6 2.2"/><path d="M7 19h10a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 19z"/>'),
     w_mendung: P('<path d="M6.5 19h11a4.5 4.5 0 0 0 .4-9 6 6 0 0 0-11.6 1.6A3.7 3.7 0 0 0 6.5 19z"/>'),
@@ -90,9 +91,10 @@
       if (!i.up) { var b = document.createElement('b'); b.textContent = 'Amaran talian: '; a.appendChild(b); a.appendChild(document.createTextNode('Internet asrama sedang terganggu sejak ' + i.sejak + '. Kami sedang membaiki.')); a.className = 'alert on'; }
       else if (i.notis && !a.closest('#vDash')) { var n = document.createElement('b'); n.textContent = 'Notis: '; a.appendChild(n); a.appendChild(document.createTextNode(i.notis)); a.className = 'alert on notis'; }
     });
-    var c = document.querySelector('.c-talian'); if (c) c.className = 'card a c-talian' + (i.up ? '' : ' down');
+    var c = document.querySelector('.c-talian'); if (c) c.classList.toggle('down', !i.up);
     teks(el('tChip'), i.up ? 'Online' : 'Gangguan');
-    teks(el('tSejak'), i.up ? 'Talian asrama normal' : 'Terganggu sejak ' + i.sejak);
+    var tc = el('tTalC'); if (tc) { teks(tc, i.up ? 'Normal' : 'Terganggu'); tc.className = 'chip ' + (i.up ? 'ok' : 'bad'); }
+    teks(el('tSejak'), i.up ? 'Talian asrama' : 'Sejak ' + String(i.sejak).slice(11, 16));
     el('jualTutup').hidden = !!i.jual; el('grid').hidden = !i.jual;
     el('bFree').hidden = !(AK && !AK.ada && i.percuma);
     if (AK) { promo(AK); notif(); }
@@ -106,7 +108,7 @@
     setTimeout(function () { a.className = k + ' in'; setTimeout(function () { a.className = k; a.removeAttribute('data-b'); }, 720); }, 300);
   }
   function masuk() {
-    var m = el('lm').value, p = el('lp').value;
+    var m = el('lm').value.trim(), p = el('lp').value.replace(/\s+/g, '');
     if (!m || !p) { el('lmsg').textContent = 'Isi No. Kad Matrik & PIN.'; return; }
     el('lmsg').textContent = 'Menyemak…';
     api({ a: 'login', m: m, pin: p }, function (r) { if (!r.ok) { el('lmsg').textContent = r.msg || 'Gagal.'; return; } el('lmsg').textContent = ''; masukOk(r); });
@@ -119,16 +121,17 @@
   }
   function masukOk(r) { TOK = r.token; ls('bfx_t', TOK); document.body.classList.remove('tetamu'); setAk(r.akaun); tunjukDash(); }
   function tunjukDash() {
-    el('vAuth').className = 'view'; el('vDash').className = 'view on';
+    el('vAuth').className = 'view'; el('vDash').className = 'view on'; document.body.classList.add('dash');
+    el('bOut').hidden = !ss('bfx_wifi');
     var rl = el('rail'); rl.classList.remove('mula'); void rl.offsetWidth; rl.classList.add('mula');
-    PG = ''; go('utama'); muatCS();
+    PG = ''; go('utama'); muatCS(); muatProfil();
   }
   // tamat = token sudah tidak sah di server (tak perlu beritahu server)
   function keluar(tamat) {
     var tetamu = !TOK;
     if (TOK && !tamat) api({ a: 'keluar' }, function () {});
     TOK = ''; AK = null; PROF = null; TG = null; ls('bfx_t', null); ls('bfx_ak', null);
-    document.body.classList.remove('tetamu');
+    document.body.classList.remove('tetamu'); document.body.classList.remove('dash');
     el('vDash').className = 'view'; el('vAuth').className = 'view on';
     if (!tetamu) { el('lp').value = ''; el('log').textContent = ''; }
   }
@@ -155,7 +158,7 @@
       baru.className = 'page'; void baru.offsetWidth; baru.className = 'page on masuk';
       clearTimeout(go.t); go.t = setTimeout(function () { baru.classList.remove('masuk'); }, 1800);
       var m = el('main'); if (m.scrollTop) m.scrollTop = 0; if (window.scrollY) window.scrollTo(0, 0);
-      kira(baru);
+      kira(baru); setTimeout(kanta, 60);
       if (pg === 'tg') muatTg();
       if (pg === 'profil') muatProfil();
       if (pg === 'ai') mulaChat();
@@ -171,8 +174,9 @@
   function tip(b, lama) {
     var t = el('tip'), r = b.getBoundingClientRect();
     t.textContent = b.getAttribute('data-tip');
-    t.style.left = (r.right + 12) + 'px'; t.style.top = (r.top + r.height / 2 - 13) + 'px';
-    t.className = 'tip on'; clearTimeout(tip.t);
+    t.className = 'tip'; var w = t.offsetWidth, kiri = r.right + 12 + w > innerWidth - 8;
+    t.style.left = (kiri ? r.left - 12 - w : r.right + 12) + 'px'; t.style.top = (r.top + r.height / 2 - 13) + 'px';
+    t.className = 'tip on' + (kiri ? ' kiri' : ''); clearTimeout(tip.t);
     if (lama) tip.t = setTimeout(function () { t.className = 'tip'; }, lama);
   }
 
@@ -190,35 +194,42 @@
   function letak(id, v, suf) { var e = el(id); if (!e) return; e.setAttribute('data-to', Number(v) || 0); e.setAttribute('data-suf', suf || ''); e.innerHTML = nombor(v) + (suf || ''); }
 
   // ---------- data akaun ----------
+  function salamMasa() { var h = new Date(Date.now() + 8 * 3600e3).getUTCHours(); return h < 12 ? 'Selamat pagi' : h < 14 ? 'Selamat tengah hari' : h < 19 ? 'Selamat petang' : 'Selamat malam'; }
   function setAk(a) {
     AK = a; ls('bfx_ak', JSON.stringify(a));
     var nama = String(a.nama || a.m), depan = nama.split(' ')[0], hari = hariLagi(a), pt = a.kuota > 0 ? Math.max(0, Math.min(1, a.guna / a.kuota)) : 0;
-    var h = el('salam'); h.removeAttribute('data-w'); h.textContent = 'Assalamualaikum, ' + depan.charAt(0).toUpperCase() + depan.slice(1).toLowerCase();
+    depan = depan.charAt(0).toUpperCase() + depan.slice(1).toLowerCase();
+    var h = el('salam'); h.removeAttribute('data-w'); h.textContent = salamMasa() + ', ' + depan;
+    teks(el('tNama'), depan); teks(el('tAva'), depan.charAt(0));
     teks(el('bsub'), a.ada ? (a.aktif ? 'Pelan ' + a.pelan + ' aktif sehingga ' + String(a.tamat).slice(0, 10) + '. Sambung WiFi FOX ULTRA 5G dan tekan Sambung WiFi.' : 'Pelan anda telah tamat. Pilih pakej baharu untuk teruskan.') : 'Belum ada pelan. Pilih pakej atau ambil percuma 5GB untuk mula.');
-    letak('tKuota', a.ada ? a.kuota : 0); letak('tHari', a.ada ? hari : 0); letak('tPer', a.peranti || 1);
-    teks(el('xp'), a.ada ? a.pelan : 'Tiada pelan'); teks(el('xt'), a.ada ? 'Tamat ' + String(a.tamat).slice(0, 10) : '-');
+    teks(el('xp'), a.ada ? a.pelan : 'Tiada pelan');
     letak('qb', a.ada ? a.baki : 0, '<small>GB</small>');
-    el('sg1').parentNode.style.flexBasis = Math.max(6, pt * 100) + '%'; el('sg2').parentNode.style.flexBasis = Math.max(6, (1 - pt) * 100) + '%';
-    teks(el('pg1'), Math.round(pt * 100) + '% guna'); teks(el('pg2'), Math.round((1 - pt) * 100) + '% baki');
-    statistik();
-    letak('st3', a.peranti || 1); letak('st4', a.ada ? hari : 0);
+    var c2 = el('pg2'); teks(c2, a.ada ? Math.round((1 - pt) * 100) + '% baki' : 'Baru'); c2.className = 'chip ' + (a.ada && pt < .9 ? 'ok' : 'bad');
+    teks(el('xt'), a.ada ? (a.aktif ? 'Tamat ' : 'Tamat pada ') + String(a.tamat).slice(0, 10) : 'Pilih pakej untuk mula');
+    letak('tKuota', a.ada ? a.kuota : 0); letak('tGuna', a.ada ? a.guna : 0); letak('tPer', a.peranti || 1);
+    letak('tHari', a.ada ? hari : 0);
+    var hc = el('tHariC'); teks(hc, a.ada ? (a.aktif ? 'Aktif' : 'Tamat') : 'Baru'); hc.className = 'chip';
+    teks(el('tHariS'), a.ada ? 'hari sebelum tamat' : 'tiada pelan aktif');
+    teks(el('tPelan'), a.ada ? a.pelan : '—'); teks(el('tPelanC'), a.ada ? a.kuota + 'GB' : 'Pilih'); teks(el('tPelanS'), a.ada ? (a.peranti || 1) + ' peranti' : 'pakej');
+    teks(el('pg1'), Math.round(pt * 100) + '%');
+    var mt = el('meter'); setTimeout(function () { mt.style.width = (a.ada ? Math.max(2, pt * 100) : 0) + '%'; }, 250); mt.parentNode.classList.toggle('penuh', pt >= .9);
+    teks(el('mGuna'), a.ada ? nombor(a.guna) + ' GB digunakan' : '0 GB'); teks(el('mKuota'), a.ada ? a.kuota + ' GB' : '-');
     el('bFree').hidden = !(!a.ada && INFO && INFO.percuma);
-    promo(a); kalendar(); notif(); pakejPanel(); profilAsas();
+    promo(a); notif(); pakejPanel(); profilAsas(); tgJubin();
     if (PG) kira(el('pg-' + PG));
   }
-  function statistik() {
-    var a = AK; if (!a) return;
-    qa('.tog button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-st') === STM); });
-    if (STM === 'kuota') { letak('st1', a.ada ? a.guna : 0); letak('st2', a.ada ? a.baki : 0); teks(el('stl'), 'GB telah guna · GB baki'); }
-    else { var h = hariLagi(a), jum = a.pelan === 'Kilat 1 Jam' || a.pelan === 'Percuma 1 Hari' ? 1 : 30; letak('st1', a.ada ? Math.max(0, jum - h) : 0); letak('st2', a.ada ? h : 0); teks(el('stl'), 'hari berlalu · hari berbaki'); }
+  function statistik() {}
+  function tgJubin() {
+    var on = !!((TG && TG.linked) || (PROF && PROF.telegram));
+    teks(el('tTg'), on ? 'Disambung' : 'Belum'); var c = el('tTgC'); teks(c, on ? '✓ Aktif' : 'Sambung'); c.className = 'chip' + (on ? ' ok' : '');
   }
   function promo(a) {
-    var c = document.querySelector('.c-promo'), b = el('prB'), cd = a && a.cadangan && INFO && INFO.jual !== false ? a.cadangan : null;
-    c.classList.toggle('ai', !!cd);
+    var b = el('prB'), cd = a && a.cadangan && INFO && INFO.jual !== false ? a.cadangan : null;
     if (cd) { teks(el('prT'), 'Cadangan BlackFox AI'); teks(el('prP'), cd.t); b.removeAttribute('data-pg'); b.setAttribute('data-beli', cd.k || ''); teks(b.querySelector('span'), cd.l || 'Lihat Pakej'); if (!cd.k) { b.removeAttribute('data-beli'); b.setAttribute('data-pg', 'pakej'); } }
     else { teks(el('prT'), a && !a.ada ? 'Mula Dengan Pakej' : 'Tambah Kuota Bila Perlu'); teks(el('prP'), a && !a.ada ? 'Saver 110GB RM17 sebulan, atau cuba percuma 5GB.' : 'Add-on dari RM10. Aktif automatik selepas bayar.'); b.removeAttribute('data-beli'); b.setAttribute('data-pg', 'pakej'); teks(b.querySelector('span'), 'Lihat Pakej'); }
   }
   function kalendar() {
+    if (!el('week')) return;
     var now = new Date(Date.now() + 8 * 3600e3), d0 = new Date(now); d0.setUTCDate(now.getUTCDate() - ((now.getUTCDay() + 6) % 7) + MG * 7);
     var tamat = AK && tarikh(AK.tamat), tk = tamat ? new Date(tamat.getTime() + 8 * 3600e3).toISOString().slice(0, 10) : '', hk = now.toISOString().slice(0, 10);
     teks(el('bulan'), BULAN[d0.getUTCMonth()] + ', ' + d0.getUTCFullYear());
@@ -240,11 +251,13 @@
     if (a.m && !a.ada) L.push({ j: 'akaun', c: '', ic: 'bag', b: 'Belum ada pelan', p: 'Pilih pakej atau ambil percuma 5GB.' });
     if (TG && !TG.linked) L.push({ j: 'akaun', c: '', ic: 'send', b: 'Sambung Telegram', p: 'Terima amaran kuota & notis gangguan terus ke Telegram.' });
     if (ios) L.push({ j: 'akaun', c: '', ic: 'wifi', b: 'Tip iPhone: auto log masuk WiFi', p: 'Settings → Wi-Fi → ⓘ (FOX ULTRA 5G) → Private Wi-Fi Address → Off / Fixed. Supaya router kenal phone anda dan auto-login berfungsi.', tg: 'Tip' });
+    (PROF && PROF.beli || []).slice(0, 4).forEach(function (x, k) { L.push({ j: 'akaun', c: 'cy', ic: 'receipt', b: 'Beli ' + x.p + ' · RM' + Number(x.rm).toFixed(2), p: x.w || x.t, tg: 'Resit', r: k }); });
     var n = el('notif'); n.textContent = '';
     var F = L.filter(function (x) { return NT === 'semua' || x.j === NT; });
     if (!F.length) { var k = document.createElement('div'); k.className = 'kosong'; k.textContent = 'Tiada notifikasi baharu.'; n.appendChild(k); return; }
     F.forEach(function (x, idx) {
-      var d = document.createElement('div'); d.className = 'ni ' + x.c; d.style.animationDelay = (idx * 60) + 'ms';
+      var d = document.createElement(x.r !== undefined ? 'button' : 'div'); d.className = 'ni ' + x.c; d.style.animationDelay = (idx * 60) + 'ms';
+      if (x.r !== undefined) { d.setAttribute('data-act', 'lihatResit'); d.setAttribute('data-r', x.r); }
       d.innerHTML = '<span class="nic"><i data-ic="' + x.ic + '"></i></span><div><b></b><p></p></div>' + (x.tg ? '<span class="tg"></span>' : '');
       teks(d.querySelector('b'), x.b); teks(d.querySelector('p'), x.p); if (x.tg) teks(d.querySelector('.tg'), x.tg);
       n.appendChild(d);
@@ -295,6 +308,7 @@
     toast('Menyediakan bil…');
     api({ a: 'beli', k: k }, function (r) {
       if (!r.ok) { toast(r.msg || 'Gagal menyediakan bil.'); return; }
+      ls('bfx_beli_t', String(Date.now()));
       var u = r.url;
       if (MAC) u = 'http://192.168.88.1/login?username=' + encodeURIComponent('T-' + MAC) + '&dst=' + encodeURIComponent(r.url);
       location.href = u;
@@ -304,7 +318,7 @@
     var b = el('bSambung'), s = b.querySelector('span'); teks(s, auto ? 'Menyambung WiFi…' : 'Menyediakan…');
     api({ a: 'sambung' }, function (r) { teks(s, 'Sambung WiFi'); if (!r.ok) { toast(r.msg || 'Gagal.'); return; } location.href = r.url; });
   }
-  function percuma() { toast('Mengaktifkan…'); api({ a: 'percuma' }, function (r) { toast(r.ok ? 'Percuma 5GB diaktifkan!' : (r.msg || 'Gagal.')); if (r.akaun) setAk(r.akaun); }); }
+  function percuma() { toast('Mengaktifkan…'); api({ a: 'percuma' }, function (r) { if (r.akaun) setAk(r.akaun); if (!r.ok) { toast(r.msg || 'Gagal.'); return; } toast('Percuma 5GB diaktifkan!'); resitPercuma(); }); }
 
   // ---------- resit ----------
   function pilihResit() { var c = el('rsC'); c.classList.remove('kilat'); void c.offsetWidth; c.classList.add('kilat'); el('rsF').click(); }
@@ -321,7 +335,7 @@
         cv.width = Math.round(im.width * s); cv.height = Math.round(im.height * s); cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height);
         var d = cv.toDataURL('image/jpeg', 0.85).split(',')[1];
         M.textContent = 'Menyemak resit dengan ToyyibPay… (sehingga 30 saat)'; el('rsB').disabled = true;
-        api({ a: 'resit', img: d, mime: 'image/jpeg' }, function (r) { el('rsB').disabled = false; M.className = 'msg' + (r.ok ? ' ok' : ''); M.textContent = r.msg || ''; if (r.akaun) setAk(r.akaun); });
+        api({ a: 'resit', img: d, mime: 'image/jpeg' }, function (r) { el('rsB').disabled = false; M.className = 'msg' + (r.ok ? ' ok' : ''); M.textContent = r.msg || ''; if (r.akaun) setAk(r.akaun); if (r.ok && /disahkan/i.test(r.msg || '')) muatProfil(function () { if (PROF.beli[0]) cetakResit(PROF.beli[0]); }); });
       };
       im.onerror = function () { M.textContent = 'Gambar tidak dapat dibaca. Cuba screenshot lain.'; };
       im.src = rd.result;
@@ -349,7 +363,7 @@
     teks(el('tgK'), '/start ' + TG.kod);
     var s = el('tgSt'); teks(s, TG.linked ? 'Disambung' : 'Belum'); s.className = 'chip' + (TG.linked ? ' ok' : '');
     teks(el('tgH'), TG.linked ? 'Telegram Disambung' : 'Sambung Telegram');
-    teks(el('mTgS'), TG.linked ? 'Disambung ✓' : 'Notis · PIN · AI');
+    tgJubin();
   }
   function salin(t, ok) {
     try { navigator.clipboard.writeText(t).then(function () { toast(ok || 'Kod disalin'); }, function () { toast(t); }); }
@@ -378,7 +392,13 @@
     letak('s1', a.ada ? a.kuota : 0); letak('s2', a.ada ? a.guna : 0); letak('s3', a.ada ? hariLagi(a) : 0);
     teks(el('s3e'), a.ada ? 'tamat ' + String(a.tamat).slice(0, 10) : 'tiada pelan aktif');
   }
-  function muatProfil() { paparProfil(); api({ a: 'profil' }, function (r) { if (!r.ok) return; PROF = r.profil; if (TG) TG.linked = TG.linked || PROF.telegram; paparProfil(); }); }
+  function muatProfil(cb) {
+    paparProfil();
+    api({ a: 'profil' }, function (r) {
+      if (!r.ok) return; PROF = r.profil; if (TG) TG.linked = TG.linked || PROF.telegram;
+      paparProfil(); carta(); notif(); tgJubin(); if (cb) cb();
+    });
+  }
   function paparProfil() {
     var a = AK || {}, p = PROF || { beli: [], telegram: false, jumlahRm: 0, bilBeli: 0, mula: '' };
     teks(el('ptg'), p.telegram ? 'Telegram disambung' : 'Telegram belum'); teks(el('pTg2'), p.telegram ? 'Disambung ✓' : 'Belum disambung');
@@ -399,12 +419,96 @@
     var A = el('pAkt'); A.textContent = '';
     if (!p.beli.length) { var k2 = document.createElement('div'); k2.className = 'kosong'; k2.textContent = 'Tiada aktiviti lagi.'; A.appendChild(k2); }
     p.beli.slice(0, 4).forEach(function (x, i) {
-      var d = document.createElement('div'); d.className = 'ni' + (i ? '' : ' or'); d.style.animationDelay = (i * 60) + 'ms';
+      var d = document.createElement('button'); d.className = 'ni' + (i ? '' : ' or'); d.style.animationDelay = (i * 60) + 'ms'; d.setAttribute('data-act', 'lihatResit'); d.setAttribute('data-r', i);
       d.innerHTML = '<span class="nic"><i data-ic="receipt"></i></span><div><b></b><p></p></div><span class="tg"></span>';
       teks(d.querySelector('b'), 'Beli ' + x.p); teks(d.querySelector('p'), x.t); teks(d.querySelector('.tg'), 'RM' + x.rm); A.appendChild(d);
     });
     ikon(A);
     kira(el('pg-profil'));
+  }
+
+
+  // ---------- carta perbelanjaan 6 bulan (data sebenar dari profil) ----------
+  function carta() {
+    var C = el('chart'); if (!C) return; C.textContent = '';
+    var now = new Date(Date.now() + 8 * 3600e3), B = [], i;
+    for (i = 5; i >= 0; i--) { var d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1)); B.push({ k: d.getUTCFullYear() + '-' + d.getUTCMonth(), n: BULAN[d.getUTCMonth()].slice(0, 3), rm: 0 }); }
+    (PROF && PROF.beli || []).forEach(function (x) { var t = tarikh(x.w || x.t); if (!t) return; t = new Date(t.getTime() + 8 * 3600e3); var k = t.getUTCFullYear() + '-' + t.getUTCMonth(); B.forEach(function (b) { if (b.k === k) b.rm += Number(x.rm) || 0; }); });
+    var mx = Math.max.apply(null, B.map(function (b) { return b.rm; }).concat([1])), jum = B.reduce(function (a, b) { return a + b.rm; }, 0);
+    teks(el('chS'), jum ? 'Jumlah 6 bulan: RM' + jum.toFixed(2) : '6 bulan terakhir · belum ada pembelian');
+    B.forEach(function (b, k) {
+      var d = document.createElement('div'), e = document.createElement('em'), bt = document.createElement('span'), sm = document.createElement('small');
+      bt.className = 'bt'; e.textContent = b.rm ? 'RM' + Math.round(b.rm) : ''; sm.textContent = b.n;
+      d.appendChild(e); d.appendChild(bt); d.appendChild(sm); C.appendChild(d);
+      setTimeout(function () { bt.style.height = (b.rm ? Math.max(10, b.rm / mx * 100) : 4) + '%'; }, 300 + k * 90);
+    });
+  }
+
+  // ---------- togol kanta kaca (Glassy Kit) ----------
+  function kanta() {
+    qa('#vDash .seg, #vDash .tabs, #vDash .tog').forEach(function (g) {
+      var k = g.querySelector('.knob'); if (!k) { k = document.createElement('span'); k.className = 'knob'; g.insertBefore(k, g.firstChild); }
+      var b = g.querySelector('button.on'); if (!b || !b.offsetWidth) return;
+      k.style.left = b.offsetLeft + 'px'; k.style.width = b.offsetWidth + 'px';
+    });
+  }
+  function picit(g) { var k = g && g.querySelector('.knob'); if (!k) return; k.classList.remove('picit'); void k.offsetWidth; k.classList.add('picit'); }
+
+  // ---------- riak cecair pada butang ----------
+  document.addEventListener('pointerdown', function (e) {
+    var b = e.target.closest('.lg, #vDash .pill, #vDash .btn, .rc .lg'); if (!b) return;
+    var r = b.getBoundingClientRect(), d = Math.max(r.width, r.height), s2 = document.createElement('span');
+    s2.className = 'rp'; s2.style.width = s2.style.height = d + 'px'; s2.style.left = (e.clientX - r.left - d / 2) + 'px'; s2.style.top = (e.clientY - r.top - d / 2) + 'px';
+    b.appendChild(s2); setTimeout(function () { s2.remove(); }, 750);
+  });
+
+  // ---------- RESIT (cetak dari slot) ----------
+  var RC = null;
+  function tempohPelan(p) { return /kilat/i.test(p) ? '1 jam' : /percuma/i.test(p) ? '1 hari' : /add-?on|peranti/i.test(p) ? 'ikut pelan semasa' : '30 hari'; }
+  function kodBar(ref) {
+    var B = el('rcBar'); B.textContent = ''; var h = 0, i, s3 = String(ref || 'BLACKFOX');
+    for (i = 0; i < s3.length; i++) h = (h * 31 + s3.charCodeAt(i)) >>> 0;
+    for (i = 0; i < 64; i++) { h = (h * 1103515245 + 12345) >>> 0; var x = document.createElement('i'); x.style.width = (1 + (h >> 16) % 3) * 1.2 + 'px'; B.appendChild(x); }
+    teks(el('rcKod'), s3);
+  }
+  function isiDl(id, rows) { var D = el(id); D.textContent = ''; rows.forEach(function (r) { if (r[1] === '' || r[1] === undefined) return; var t = document.createElement('dt'), d = document.createElement('dd'); t.textContent = r[0]; d.textContent = r[1]; D.appendChild(t); D.appendChild(d); }); }
+  function bukaResit(o) {
+    RC = o; var a = AK || {};
+    teks(el('rcT'), o.percuma ? 'Internet percuma diaktifkan' : 'Resit anda');
+    teks(el('rcS'), o.percuma ? 'Percuma 5GB · RM0.00' : 'RM' + Number(o.rm).toFixed(2) + ' dibayar dengan ' + (o.cara || 'FPX / DuitNow QR'));
+    isiDl('rcA', [['Resit', o.ref], ['Tarikh', o.w], ['No. Matrik', a.m], ['Nama', String(a.nama || '').slice(0, 22)]]);
+    isiDl('rcB', [['Pakej', o.p], ['Kuota', o.gb ? o.gb + ' GB' : ''], ['Tempoh', tempohPelan(o.p)], ['Peranti', (a.peranti || 1) + ' serentak'], ['Harga', 'RM' + Number(o.rm).toFixed(2)], ['Caj', 'RM0.00']]);
+    teks(el('rcJ'), 'RM' + Number(o.rm).toFixed(2));
+    teks(el('rcCop').querySelector('b'), o.percuma ? 'FREE' : 'PAID'); teks(el('rcCopT'), String(o.w || '').slice(0, 10));
+    isiDl('rcC', [['Bayaran', o.percuma ? 'Percuma pengguna baru' : o.cara], ['Status', o.percuma ? 'AKTIF' : 'DILULUSKAN']]);
+    kodBar(o.ref);
+    cetakSemula();
+  }
+  function cetakSemula() {
+    var r = el('rc'); clearTimeout(cetakSemula.t);
+    r.className = 'rc on'; void r.offsetWidth; r.className = 'rc on cetak';
+    cetakSemula.t = setTimeout(function () { r.className = 'rc on cetak siap'; }, 3300);
+  }
+  function cetakResit(x) { if (!x) return; ls('bfx_resit_dicetak', x.ref); bukaResit({ ref: x.ref, w: x.w || x.t, p: x.p, rm: x.rm, gb: x.gb, cara: x.cara || 'FPX / DuitNow QR' }); }
+  function resitPercuma() {
+    var a = AK || {}, w = new Date(Date.now() + 8 * 3600e3), d2 = function (n) { return (n < 10 ? '0' : '') + n; };
+    var t = d2(w.getUTCDate()) + '/' + d2(w.getUTCMonth() + 1) + '/' + w.getUTCFullYear() + ' ' + d2(w.getUTCHours()) + ':' + d2(w.getUTCMinutes());
+    bukaResit({ percuma: 1, ref: 'FREE-' + String(a.m || '').slice(-4) + '-' + w.getUTCFullYear() + d2(w.getUTCMonth() + 1) + d2(w.getUTCDate()), w: t, p: 'Percuma 5GB', rm: 0, gb: 5, cara: 'Percuma' });
+  }
+  // Pulang dari ToyyibPay (?bayar=1&status_id=..): tunggu callback direkod, kemudian cetak resit
+  function tungguBayaran(st) {
+    if (st === '3') { toast('Pembayaran tidak berjaya / dibatalkan.'); return; }
+    // terima HANYA bayaran yang direkod selepas pelajar tekan Beli (atau 30 minit terakhir), dan belum pernah dicetak
+    var r = el('rc'), sejak = (+ls('bfx_beli_t') || Date.now() - 30 * 60e3) - 10 * 60e3, n = 0;
+    teks(el('rcT'), 'Mengesahkan bayaran…'); teks(el('rcS'), 'Menunggu pengesahan ToyyibPay. Jangan tutup app.');
+    r.className = 'rc on tunggu';
+    (function semak() {
+      api({ a: 'profil' }, function (x) {
+        if (x.ok) { PROF = x.profil; var b = PROF.beli[0], tb = b && tarikh(b.w || b.t); if (b && tb && tb.getTime() >= sejak && b.ref !== ls('bfx_resit_dicetak')) { ls('bfx_beli_t', null); api({ a: 'akaun' }, function (y) { if (y.ok) setAk(y.akaun); }); carta(); notif(); cetakResit(b); return; } }
+        if (++n >= 30) { r.className = 'rc'; toast('Bayaran belum disahkan. Jika sudah bayar, tekan Hantar Resit di Pakej.'); return; }
+        setTimeout(semak, 4000);
+      });
+    })();
   }
 
   // ---------- peristiwa ----------
@@ -414,8 +518,8 @@
     if (t.matches('.qk button')) { hantar(t.textContent); return; }
     if (t.hasAttribute('data-beli')) { e.preventDefault(); beli(t.getAttribute('data-beli')); return; }
     if (t.hasAttribute('data-st')) { STM = t.getAttribute('data-st'); statistik(); kira(document.querySelector('.c-stat')); return; }
-    if (t.hasAttribute('data-nt')) { NT = t.getAttribute('data-nt'); qa('#nTabs button').forEach(function (b) { b.classList.toggle('on', b === t); }); notif(); return; }
-    if (t.hasAttribute('data-f')) { tapis(t.getAttribute('data-f')); return; }
+    if (t.hasAttribute('data-nt')) { NT = t.getAttribute('data-nt'); qa('#nTabs button').forEach(function (b) { b.classList.toggle('on', b === t); }); notif(); kanta(); picit(t.parentNode); return; }
+    if (t.hasAttribute('data-f')) { tapis(t.getAttribute('data-f')); kanta(); picit(t.parentNode); return; }
     var act = t.getAttribute('data-act');
     if (t.hasAttribute('data-pg') && !act) { e.preventDefault(); go(t.getAttribute('data-pg')); if (t.classList.contains('ri') && matchMedia('(hover:none)').matches) tip(t, 900); return; }
     if (!act) return;
@@ -428,6 +532,10 @@
       case 'percuma': percuma(); break;
       case 'resit': if (PG !== 'pakej') go('pakej'); pilihResit(); break;
       case 'resitPg': go('pakej'); setTimeout(pilihResitKilat, 700); break;
+      case 'askAI': go('ai'); setTimeout(function () { el('cq').focus(); }, 450); break;
+      case 'lihatResit': cetakResit(PROF && PROF.beli[+t.getAttribute('data-r')]); break;
+      case 'rcUlang': cetakSemula(); break;
+      case 'rcTutup': el('rc').className = 'rc'; break;
       case 'mgL': MG--; kalendar(); break;
       case 'mgR': MG++; kalendar(); break;
       case 'salinKod': salin(el('tgK').textContent); break;
@@ -452,12 +560,12 @@
   });
   document.addEventListener('input', function (e) { if (e.target.hasAttribute('data-digit')) e.target.value = e.target.value.replace(/[^0-9]/g, ''); });
   el('rsF').addEventListener('change', function () { resit(this); });
-  qa('.ri').forEach(function (b) {
+  qa('.ri, #bOut').forEach(function (b) {
     b.addEventListener('mouseenter', function () { tip(b); });
     b.addEventListener('mouseleave', function () { el('tip').className = 'tip'; });
     b.addEventListener('focus', function () { tip(b, 1200); });
   });
-  window.addEventListener('resize', function () { takuk(); el('tip').className = 'tip'; });
+  window.addEventListener('resize', function () { takuk(); kanta(); el('tip').className = 'tip'; });
 
   // ---------- pasang app ikut peranti ----------
   var ev = null;
@@ -666,7 +774,9 @@
     var q = new URLSearchParams(location.search), mac = String(q.get('mac') || '').toUpperCase(), ip = String(q.get('ip') || '');
     if (/^([0-9A-F]{2}:){5}[0-9A-F]{2}$/.test(mac)) { MAC = mac; ls('bfx_mac', MAC); } else MAC = /^([0-9A-F]{2}:){5}[0-9A-F]{2}$/.test(ls('bfx_mac') || '') ? ls('bfx_mac') : '';
     if (/^192\.168\.88\.\d{1,3}$/.test(ip)) { IP = ip; ls('bfx_ip', IP); } else IP = /^192\.168\.88\.\d{1,3}$/.test(ls('bfx_ip') || '') ? ls('bfx_ip') : '';
-    if (q.get('mac') || q.get('ip')) history.replaceState(null, '', location.pathname + (q.get('src') ? '?src=' + encodeURIComponent(q.get('src')) : ''));
+    if (q.get('mac')) ss('bfx_wifi', '1'); // dibuka dari halaman WiFi -> tunjuk butang Keluar ke WiFi
+    var bayar = q.get('bayar') ? String(q.get('status_id') || '0') : '';
+    if (q.get('mac') || q.get('ip') || q.get('bayar')) history.replaceState(null, '', location.pathname + (q.get('src') ? '?src=' + encodeURIComponent(q.get('src')) : ''));
     ikon(); binaPakej(); kalendar();
     // Auto sambung WiFi: dibuka dari portal (ada mac) + sudah log masuk + pakej aktif -> SEKALI sahaja (tiada loop)
     var dariPortal = !!(MAC && q.get('mac')) && q.get('src') !== 'status';
@@ -686,7 +796,7 @@
       if (ak0) { setAk(ak0); tunjukDash(); } else el('muat').className = 'muat on';
       api({ a: 'akaun' }, function (r) {
         el('muat').className = 'muat';
-        if (r.ok) { setAk(r.akaun); if (!ak0) tunjukDash(); autoWifi(r.akaun); return; }
+        if (r.ok) { setAk(r.akaun); if (!ak0) tunjukDash(); if (bayar) tungguBayaran(bayar); else autoWifi(r.akaun); return; }
         if (r.keluar || !TOK) { el('vDash').className = 'view'; el('vAuth').className = 'view on'; return; }
         if (!ak0) { el('vAuth').className = 'view on'; toast(r.msg || 'Tiada sambungan. Cuba lagi.'); }
       });

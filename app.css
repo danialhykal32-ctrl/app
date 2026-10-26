@@ -369,7 +369,7 @@ button.ib{position:relative}button.ib:after{content:"";position:absolute;inset:-
 .mbox img{width:48px;height:48px;border-radius:12px}
 .mbox h3{font-size:16.5px;margin:0}.mbox .row p{color:var(--mu);font-size:13px;margin:3px 0 0;line-height:1.45}
 .mx{position:absolute;right:12px;top:12px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid var(--br);font-size:20px;line-height:1;color:var(--tx)}
-.vid{margin:14px auto 0;max-width:230px;border-radius:18px;overflow:hidden;border:1px solid var(--br2);background:#000;aspect-ratio:9/16}
+.vid{margin:14px auto 0;max-width:230px;border-radius:18px;overflow:hidden;border:1px solid var(--br2);background:#000;aspect-ratio:480/1044}
 .vid video{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none}
 .mbox ol{margin:14px 0 0 20px;padding:0;font-size:14px;line-height:1.75}
 .mbox ol b{color:#fff}.mbox ol .k{display:inline-block;min-width:22px;padding:0 6px;margin:0 2px;border-radius:6px;background:rgba(255,255,255,.1);border:1px solid var(--br2);text-align:center;font-weight:700}

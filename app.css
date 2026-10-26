@@ -333,13 +333,67 @@ button.ib{position:relative}button.ib:after{content:"";position:absolute;inset:-
 .btns button{flex:1;min-height:44px;border-radius:999px;border:1px solid var(--br2);background:rgba(255,255,255,.06);font-weight:600}
 .btns .pri{background:var(--hi);color:#000;border-color:var(--hi)}
 
-/* Laptop/tablet landskap: satu skrin tanpa skrol, nisbah baris ikut video V18 (18.5 : 29.6 : 41.8) */
-@media (min-width:1024px) and (min-height:700px){
+
+/* ---------- waktu solat & cuaca ---------- */
+.row4{display:grid;grid-template-columns:1.5fr 1fr;gap:var(--gap)}
+.row4>*{min-width:0}
+.c-solat .ch{flex-wrap:wrap;row-gap:8px}
+.c-solat,.c-cuaca{display:flex;flex-direction:column}
+.c-solat .ch h3,.c-cuaca .ch h3{white-space:nowrap}
+.zonb{display:inline-flex;align-items:center;gap:4px;min-height:32px;max-width:100%;padding:0 12px;border-radius:999px;border:1px solid var(--br2);background:rgba(255,255,255,.06);font-size:12px;font-weight:600;color:var(--tx)}
+.zonb span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.snx{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:2px 0 12px;flex-wrap:wrap}
+.snx b{font-size:clamp(17px,1.6vw,21px);font-weight:600;letter-spacing:-.01em}.snx b em{font-style:normal;color:var(--or)}
+.snx small{color:var(--mu2);font-size:11.5px}
+.swk{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.swk span{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 2px;border-radius:14px;background:var(--card2);border:1px solid var(--br);font-size:11px;color:var(--mu);min-width:0}
+.swk b{font-size:14px;color:var(--tx);font-weight:600;font-variant-numeric:tabular-nums}
+.swk .lalu{opacity:.5}
+.swk .kini{background:var(--hi);border-color:var(--hi);color:rgba(11,11,12,.65);box-shadow:0 0 0 1px rgba(255,106,0,.5),0 10px 24px -14px rgba(255,106,0,.9)}
+.swk .kini b{color:#0b0b0c}
+.upd{display:block;margin-top:auto;padding-top:10px;color:var(--mu2);font-size:11px}
+.upd.bad{color:#ffb4a0}
+.cnow{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;margin:4px 0 6px}
+.cic{width:54px;height:54px;flex:none;border-radius:16px;display:flex;align-items:center;justify-content:center;background:rgba(255,106,0,.12);border:1px solid rgba(255,106,0,.3);color:var(--or)}
+.cic svg{width:30px;height:30px}
+.cnow>b{font-size:clamp(30px,2.8vw,38px);font-weight:500;letter-spacing:-.03em;white-space:nowrap}
+.cnow>b small{font-size:.45em;color:var(--mu);font-weight:600;margin-left:2px}
+.cdt{flex:1 1 150px;min-width:0}.cdt p{margin:0;font-size:13px;line-height:1.4;font-weight:600}.cdt small{display:block;color:var(--mu);font-size:12px;margin-top:3px}
+
+/* ---------- modal (panduan pasang / zon) ---------- */
+.modal{position:fixed;inset:0;z-index:85;display:none;align-items:flex-end;justify-content:center;padding:12px 12px calc(12px + env(safe-area-inset-bottom));background:rgba(0,0,0,.55)}
+.modal.on{display:flex;animation:pudar .25s backwards}
+@keyframes pudar{from{opacity:0}}
+.mbox{position:relative;width:100%;max-width:440px;max-height:calc(100dvh - 24px);overflow-y:auto;background:rgba(24,24,27,.96);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--br2);border-radius:24px;padding:20px;animation:rise .35s var(--out) backwards}
+.mbox .row{display:flex;gap:12px;align-items:center;padding-right:30px}
+.mbox img{width:48px;height:48px;border-radius:12px}
+.mbox h3{font-size:16.5px;margin:0}.mbox .row p{color:var(--mu);font-size:13px;margin:3px 0 0;line-height:1.45}
+.mx{position:absolute;right:12px;top:12px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid var(--br);font-size:20px;line-height:1;color:var(--tx)}
+.vid{margin:14px auto 0;max-width:230px;border-radius:18px;overflow:hidden;border:1px solid var(--br2);background:#000;aspect-ratio:9/16}
+.vid video{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.mbox ol{margin:14px 0 0 20px;padding:0;font-size:14px;line-height:1.75}
+.mbox ol b{color:#fff}.mbox ol .k{display:inline-block;min-width:22px;padding:0 6px;margin:0 2px;border-radius:6px;background:rgba(255,255,255,.1);border:1px solid var(--br2);text-align:center;font-weight:700}
+.mnote{color:var(--mu);font-size:12.5px;line-height:1.55;margin:12px 0 0}
+.mnote b{color:var(--or)}
+.mbox .btns{flex-wrap:wrap}
+.btns a{flex:1 1 100%;display:flex;align-items:center;justify-content:center;min-height:44px;border-radius:999px;font-weight:600;text-decoration:none;background:var(--hi);color:#000}
+.sAx{margin:10px 0 0 60px;font-size:13px}.sAx a{color:var(--or)}
+.sel{display:block;margin-top:14px}
+.sel span{display:block;font-size:12px;color:var(--mu);margin-bottom:6px}
+.sel select{width:100%;min-height:46px;padding:0 14px;border-radius:14px;background:rgba(0,0,0,.4);border:1px solid var(--br2);color:var(--tx);font-size:15px;font-family:inherit}
+.sel option{background:#18181b;color:#fff}
+@media (min-width:720px){.modal{align-items:center}}
+
+/* Laptop/tablet landskap: satu skrin tanpa skrol, nisbah baris ikut video V18 (18.5 : 29.6 : 41.8) + jalur solat/cuaca ringkas.
+   Skrin pendek (< 820px tinggi) guna susun atur biasa (skrol) supaya kad tidak terpotong. */
+@media (min-width:1024px) and (min-height:820px){
   #pg-utama.on{height:100%}
   #pg-utama .bento{height:100%;grid-template-rows:minmax(0,1fr)}
-  #pg-utama .kiri{display:grid;grid-template-rows:18.5fr 29.6fr 41.8fr;min-height:0}
+  #pg-utama .kiri{display:grid;grid-template-rows:18.5fr 29.6fr 41.8fr auto;min-height:0}
   #pg-utama .kiri>*{min-height:0}
-  #pg-utama .row2>*,#pg-utama .row3>*{min-height:0;overflow:hidden}
+  #pg-utama .row2>*,#pg-utama .row3>*,#pg-utama .row4>*{min-height:0;overflow:hidden}
+  .c-solat,.c-cuaca{padding:14px 18px}.c-solat .ch,.c-cuaca .ch{margin-bottom:6px}.snx{margin:0 0 8px}.swk span{padding:5px 2px;flex-direction:row;justify-content:center;gap:6px}.upd{padding-top:6px}
+  .cnow{margin:0}.cic{width:44px;height:44px}.cnow>b{font-size:30px}
   #pg-utama .banner{min-height:0}
   #pg-utama .kanan{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);gap:24px;min-height:0}
   #pg-utama .nf{display:flex;flex-direction:column;min-height:0}
@@ -387,7 +441,8 @@ button.ib{position:relative}button.ib:after{content:"";position:absolute;inset:-
   .notch{right:-7px;width:10px;height:20px}
   .main{height:auto;overflow:visible}
   .kanan{display:flex}
-  .row2,.row3,.pgrid{grid-template-columns:1fr}
+  .row2,.row3,.row4,.pgrid{grid-template-columns:1fr}
+  .swk{gap:6px}.swk span{font-size:10.5px;padding:8px 1px}.swk b{font-size:13px}
   .grid{grid-template-columns:1fr}
   .banner{min-height:0;flex-direction:column-reverse}
   .banner .art{width:100%;height:84px;border-radius:var(--r) var(--r) 0 0;-webkit-mask:linear-gradient(180deg,#000 40%,transparent);mask:linear-gradient(180deg,#000 40%,transparent)}

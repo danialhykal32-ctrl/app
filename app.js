@@ -20,6 +20,7 @@
   // ---------- ikon ----------
   var P = function (d) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>'; };
   var IC = {
+    gauge: P('<path d="M4 18a8 8 0 1 1 16 0"/><path d="M12 18l4-6"/><path d="M12 6v1.5M6.3 8.3l1 1M17.7 8.3l-1 1"/>'),
     fox: '<svg viewBox="0 0 64 64"><path d="M8 6l14 14h20L56 6l-4 26-20 26L12 32z" fill="#ff6a00"/><path d="M22 20h20l-10 12z" fill="#0b0d10" opacity=".9"/><path d="M32 58L20 38h24z" fill="#0b0d10" opacity=".55"/><circle cx="24" cy="30" r="2.2" fill="#0b0d10"/><circle cx="40" cy="30" r="2.2" fill="#0b0d10"/></svg>',
     home: P('<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>'),
     bag: P('<path d="M5 8h14l-1 12H6z"/><path d="M9 8a3 3 0 0 1 6 0"/>'),
@@ -73,9 +74,9 @@
   function ss(k, v) { try { if (v === undefined) return sessionStorage.getItem(k); sessionStorage.setItem(k, v); } catch (e) { return null; } }
 
   // ---------- API ----------
-  function api(req, cb) {
+  function api(req, cb, ms) {
     req.token = TOK; req.mac = MAC; req.ip = IP;
-    var ctl = window.AbortController ? new AbortController() : null, t = ctl && setTimeout(function () { ctl.abort(); }, 45000);
+    var ctl = window.AbortController ? new AbortController() : null, t = ctl && setTimeout(function () { ctl.abort(); }, ms || 45000);
     fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ api: 1, req: req }), redirect: 'follow', signal: ctl ? ctl.signal : undefined })
       .then(function (r) { return r.json(); })
       .then(function (r) { clearTimeout(t); r = r || {}; if (r.keluar && TOK) keluar(true); else if (r.token && TOK) { TOK = r.token; ls('bfx_t', TOK); } if (r.info) setInfo(r.info); cb(r); })
@@ -124,7 +125,7 @@
     el('vAuth').className = 'view'; el('vDash').className = 'view on'; document.body.classList.add('dash');
     el('bOut').hidden = !ss('bfx_wifi');
     var rl = el('rail'); rl.classList.remove('mula'); void rl.offsetWidth; rl.classList.add('mula');
-    PG = ''; go('utama'); muatCS(); muatProfil();
+    PG = ''; go('utama'); muatCS(); prefetchAsrama(); muatProfil();
   }
   // tamat = token sudah tidak sah di server (tak perlu beritahu server)
   function keluar(tamat) {
@@ -162,6 +163,7 @@
       if (pg === 'tg') muatTg();
       if (pg === 'profil') muatProfil();
       if (pg === 'ai') mulaChat();
+      if (pg === 'laju') lajuSedia();
     };
     if (lama && lama.classList.contains('on')) { lama.className = 'page keluar'; setTimeout(tunjuk, 210); } else tunjuk();
   }
@@ -540,6 +542,10 @@
       case 'pTutup': tutupPanduan(); break;
       case 'salinLink': salin(linkApp(), 'Link disalin. Tampal dalam Safari / Chrome.'); break;
       case 'zon': bukaZon(); break;
+      case 'csCuba': muatCS(true); break;
+      case 'windy': bukaWindy(); break;
+      case 'wTutup': tutupWindy(); break;
+      case 'lajuMula': lajuMula(); break;
       case 'zTutup': el('mZ').className = 'modal'; break;
       case 'zAsrama': simpanZon(''); break;
       case 'zSimpan': simpanZon(el('zZon').value); break;
@@ -559,6 +565,75 @@
     b.addEventListener('focus', function () { if (b.matches(':focus-visible')) tip(b, 1200); });
   });
   window.addEventListener('resize', function () { takuk(); kanta(); el('tip').className = 'tip'; });
+
+  // ---------- UJI LAJU (@cloudflare/speedtest, dimuat hanya bila diperlukan) ----------
+  // Maks ~22MB (turun 16.9MB + naik 4.8MB); sekali setiap 10 minit. Tiada log ke Cloudflare (logAimApiUrl null).
+  var LJ = null, LJ_MEAS = [
+    { type: 'latency', numPackets: 1 }, { type: 'download', bytes: 1e5, count: 1, bypassMinDuration: true }, { type: 'latency', numPackets: 20 },
+    { type: 'download', bytes: 1e5, count: 8 }, { type: 'download', bytes: 1e6, count: 6 }, { type: 'upload', bytes: 1e5, count: 8 },
+    { type: 'upload', bytes: 1e6, count: 4 }, { type: 'download', bytes: 1e7, count: 1 }
+  ];
+  function mbps(b) { return typeof b === 'number' && b > 0 ? b / 1e6 : null; }
+  function f1(n) { return n === null || n === undefined ? '–' : n >= 100 ? String(Math.round(n)) : (Math.round(n * 10) / 10).toFixed(1); }
+  function meter(v, fasa, unit) {
+    var p = v ? Math.min(100, Math.sqrt(Math.min(v, 100) / 100) * 100) : 0; // skala punca kuasa: kelajuan rendah tetap nampak
+    el('ljArka').style.strokeDashoffset = String(100 - p);
+    teks(el('ljNom'), v === null || v === undefined ? '0' : f1(v)); teks(el('ljUnit'), unit || 'Mbps'); teks(el('ljFasa'), fasa);
+  }
+  function lajuBaki() { var t = +ls('bfx_laju_t') || 0, b = 600e3 - (Date.now() - t); return b > 0 ? Math.ceil(b / 60e3) : 0; }
+  function lajuSej() {
+    var L = []; try { L = JSON.parse(ls('bfx_laju_sej') || '[]'); } catch (e) {}
+    var w = el('ljSej'); w.textContent = '';
+    if (!L.length) return;
+    var h = document.createElement('h4'); h.textContent = 'Ujian terakhir'; w.appendChild(h);
+    L.forEach(function (x) { var d = document.createElement('p'), b = document.createElement('b'); b.textContent = '⬇ ' + f1(x.d) + ' · ⬆ ' + f1(x.u) + ' Mbps'; d.appendChild(b); d.appendChild(document.createTextNode(' ' + x.lok + (x.bilik ? ' ' + x.bilik : '') + ' · ' + jam(x.t))); w.appendChild(d); });
+  }
+  function lajuSedia() {
+    if (!el('ljLok').value && ls('bfx_lok')) el('ljLok').value = ls('bfx_lok');
+    if (!el('ljBilik').value && ls('bfx_bilik')) el('ljBilik').value = ls('bfx_bilik');
+    var b = lajuBaki(), M = el('ljMsg');
+    if (!LJ) { M.className = 'msg'; teks(M, b ? 'Uji semula dalam ' + b + ' minit.' : 'Ujian guna sedikit kuota (~25MB). Sekali setiap 10 minit.'); }
+    lajuSej();
+  }
+  function lajuMula() {
+    if (LJ) return;
+    var M = el('ljMsg'), B = el('ljB'), lok = el('ljLok').value, bilik = el('ljBilik').value.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 10);
+    if (!lok) { M.className = 'msg'; teks(M, 'Pilih lokasi (blok) dahulu.'); el('ljLok').focus(); return; }
+    ls('bfx_lok', lok); ls('bfx_bilik', bilik || null);
+    var b = lajuBaki(); if (b) { M.className = 'msg'; teks(M, 'Uji laju sekali setiap 10 minit. Cuba lagi dalam ' + b + ' minit.'); return; }
+    LJ = 1; B.disabled = true; teks(B, 'Menyemak…'); M.className = 'msg ok'; teks(M, '');
+    var habis = function (t, ok) { LJ = null; B.disabled = false; teks(B, 'Uji Semula'); M.className = 'msg' + (ok ? ' ok' : ''); teks(M, t); };
+    api({ a: 'laju', cek: 1 }, function (r) {
+      if (!r.ok) { habis(r.msg || 'Tiada sambungan ke pelayan.'); return; }
+      if (r.tunggu > 0) { ls('bfx_laju_t', String(Date.now() - (600 - r.tunggu) * 1000)); habis('Uji laju sekali setiap 10 minit. Cuba lagi dalam ' + Math.ceil(r.tunggu / 60) + ' minit.'); return; }
+      teks(B, 'Memuat…');
+      import('./speedtest.js').then(function (mod) {
+        ls('bfx_laju_t', String(Date.now())); // dikira dari mula (ujian guna kuota walaupun terhenti)
+        var E = new mod.default({ autoStart: false, logAimApiUrl: null, logMeasurementApiUrl: null, measureDownloadLoadedLatency: false, measureUploadLoadedLatency: false, measurements: LJ_MEAS });
+        LJ = E; teks(B, 'Sedang menguji…'); meter(0, 'Ping');
+        E.onResultsChange = function (p) {
+          var R = E.results, d = mbps(R.getDownloadBandwidth()), u = mbps(R.getUploadBandwidth()), pi = R.getUnloadedLatency(), ji = R.getUnloadedJitter();
+          teks(el('ljD'), f1(d)); teks(el('ljU'), f1(u)); teks(el('ljP'), pi ? String(Math.round(pi)) : '–'); teks(el('ljJ'), ji ? f1(ji) : '–');
+          var t = p && p.type;
+          if (t === 'upload') meter(u, 'Muat naik'); else if (t === 'download') meter(d, 'Muat turun'); else if (t === 'latency' && pi) meter(pi, 'Ping', 'ms');
+        };
+        E.onError = function (e) { habis('Ujian gagal: ' + String(e || 'ralat rangkaian').slice(0, 80)); };
+        E.onFinish = function (R) {
+          var d = mbps(R.getDownloadBandwidth()), u = mbps(R.getUploadBandwidth()), pi = R.getUnloadedLatency(), ji = R.getUnloadedJitter();
+          meter(d, 'Selesai · muat turun');
+          if (!d) { habis('Ujian tidak lengkap. Cuba lagi selepas 10 minit.'); return; }
+          var x = { t: Date.now(), lok: lok, bilik: bilik, d: d, u: u || 0 }, L = [];
+          try { L = JSON.parse(ls('bfx_laju_sej') || '[]'); } catch (e) {}
+          L.unshift(x); ls('bfx_laju_sej', JSON.stringify(L.slice(0, 5))); lajuSej();
+          habis('Siap. Menyimpan keputusan…', true);
+          api({ a: 'laju', lok: lok, bilik: bilik, down: d, up: u || 0, ping: pi || 0, jitter: ji || 0 }, function (r) {
+            M.className = 'msg' + (r.ok ? ' ok' : ''); teks(M, r.ok ? 'Keputusan disimpan. Terima kasih! Uji semula selepas 10 minit.' : (r.msg || 'Keputusan tidak dapat disimpan.'));
+          }, 20000);
+        };
+        E.play();
+      }).catch(function () { habis('Gagal memuat ujian. Semak sambungan internet.'); });
+    }, 15000);
+  }
 
   // ---------- pasang app ikut peranti ----------
   var ev = null;
@@ -647,14 +722,14 @@
   // ---------- versi baru: notis "Kemas kini" (SW baru menunggu, tekan sekali -> skipWaiting + muat semula) ----------
   var SWW = null, mahuMuat = false;
   function kemaskini() {
-    el('upd').hidden = true; mahuMuat = true;
+    el('versi').hidden = true; mahuMuat = true;
     if (SWW) SWW.postMessage({ t: 'skip' });
     setTimeout(function () { location.reload(); }, 3000); // sandaran jika controllerchange tidak berlaku
   }
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('controllerchange', function () { if (mahuMuat) { mahuMuat = false; location.reload(); } });
     navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function (reg) {
-      function sedia(w) { if (!w || !navigator.serviceWorker.controller) return; SWW = w; el('upd').hidden = false; } // tiada notis pada pasangan pertama
+      function sedia(w) { if (!w || !navigator.serviceWorker.controller) return; SWW = w; el('versi').hidden = false; } // tiada notis pada pasangan pertama
       if (reg.waiting) sedia(reg.waiting);
       reg.addEventListener('updatefound', function () { var w = reg.installing; if (w) w.addEventListener('statechange', function () { if (w.state === 'installed') sedia(w); }); });
       document.addEventListener('visibilitychange', function () { if (!document.hidden) reg.update().catch(function () {}); }); // semak bila app dibuka semula
@@ -693,26 +768,49 @@
   function tempoh(m) { var j = Math.floor(m / 60), n = m % 60; return j ? j + 'j ' + n + 'm' : n + 'm'; }
   function csSimpan(z, o) { ls('bfx_cs_' + z, JSON.stringify(o)); }
   function csBaca(z) { try { return JSON.parse(ls('bfx_cs_' + z) || 'null'); } catch (e) { return null; } }
+  // Muat solat & cuaca SATU zon. Cache phone dipapar serta-merta; tiada cache = rangka "Memuatkan…".
+  // Respons lama (zon lain / permintaan lama) diabaikan. Tamat masa 15s, cuba semula sekali automatik.
+  var CSQ = 0, CSM = false, CSJ = {};
+  function ambilCS(z, cb) { // satu permintaan setiap zon pada satu masa; respons diberi kepada semua yang menunggu
+    if (CSJ[z]) { CSJ[z].push(cb); return; }
+    CSJ[z] = [cb];
+    var siap = function (o) { var L = CSJ[z] || []; delete CSJ[z]; L.forEach(function (f) { f(o); }); };
+    var cuba = function (n) {
+      api({ a: 'cuaca', zon: z }, function (r) {
+        var adaC = r.ok && r.cuaca && r.cuaca.ok, adaS = r.ok && r.solat && r.solat.ok;
+        if (!adaC && !adaS && n < 1) { cuba(n + 1); return; } // cuba semula sekali sebelum papar gagal
+        var o = csBaca(z) || {}, now = Date.now();
+        if (adaC) { o.c = r.cuaca; o.c.t = now; }
+        if (adaS) { o.s = r.solat; o.s.t = now; }
+        o.gagal = !(adaC && adaS);
+        if (adaC || adaS) csSimpan(z, o);
+        siap(o);
+      }, 15000);
+    };
+    cuba(0);
+  }
   function muatCS(paksa) {
-    var z = zonKini(), lama = csBaca(z);
-    teks(el('zonN'), zonPendek(z));
+    var z = zonKini(), lama = csBaca(z), sq = ++CSQ;
+    teks(el('zonN'), zonPendek(z)); teks(el('zonN2'), zonPendek(z));
+    var segar = lama && lama.c && lama.s && Date.now() - lama.c.t < 15 * 60e3 && lama.s.tarikh === hariIni();
+    CSM = !(segar && !paksa);
     CS = lama; paparCS();
-    var segar = lama && lama.c && Date.now() - lama.c.t < 15 * 60e3 && lama.s && lama.s.tarikh === hariIni();
-    if (segar && !paksa) return;
-    if (muatCS.j && Date.now() - muatCS.j < 8000) return; // elak panggilan berganda
-    muatCS.j = Date.now();
-    api({ a: 'cuaca', zon: z }, function (r) {
-      muatCS.j = 0;
-      if (z !== zonKini()) return;
-      var o = csBaca(z) || {}, now = Date.now();
-      if (r.ok && r.cuaca && r.cuaca.ok) { o.c = r.cuaca; o.c.t = now; }
-      if (r.ok && r.solat && r.solat.ok) { o.s = r.solat; o.s.t = now; }
-      o.gagal = !(r.ok && r.cuaca && r.cuaca.ok && r.solat && r.solat.ok);
-      csSimpan(z, o); CS = o; paparCS();
+    if (!CSM) return;
+    ambilCS(z, function (o) {
+      if (sq !== CSQ || z !== zonKini()) return; // abaikan respons yang bukan zon semasa
+      CSM = false; CS = o; paparCS();
     });
   }
+  // Prefetch zon asrama (NGS01) semasa app dibuka supaya "Kembali ke Asrama" terus ada data
+  function prefetchAsrama() {
+    var o = csBaca(ASRAMA);
+    if (zonKini() !== ASRAMA && !(o && o.c && Date.now() - o.c.t < 15 * 60e3 && o.s && o.s.tarikh === hariIni())) ambilCS(ASRAMA, function () {});
+  }
+  function rangka(id, n) { var e = el(id); e.textContent = ''; for (var i = 0; i < n; i++) { var s = document.createElement('span'); s.className = 'sk'; e.appendChild(s); } }
   function paparCS() {
     var o = CS || {}, s = o.s, c = o.c;
+    el('pg-utama').querySelector('.c-solat').classList.toggle('memuat', !s && CSM);
+    el('pg-utama').querySelector('.c-cuaca').classList.toggle('memuat', !c && CSM);
     // waktu solat
     var W = el('sWaktu'); W.textContent = '';
     if (s && s.w) {
@@ -731,29 +829,51 @@
       }
       var h = String(s.hijri || '').match(/(\d{4})-(\d{2})-(\d{2})/);
       teks(el('sHijri'), h ? (+h[3]) + ' ' + HIJRI[+h[2] - 1] + ' ' + h[1] + 'H' : '');
-    } else { teks(el('sNext'), '-'); teks(el('sHijri'), ''); }
+    } else if (CSM) { rangka('sWaktu', 5); teks(el('sNext'), 'Memuatkan…'); teks(el('sHijri'), ''); }
+    else { teks(el('sNext'), '-'); teks(el('sHijri'), ''); }
     upd('sUpd', s, o.gagal);
     // cuaca
+    var A = el('cAmaran'), R = el('cRamal'), J = el('cJam'); A.textContent = ''; J.textContent = '';
     if (c) {
       el('cIk').innerHTML = IC['w_' + c.ikon] || IC.w_awan;
       var su = el('cSuhu');
       su.textContent = c.suhu !== undefined && c.suhu !== null ? c.suhu + '°' : c.min + '–' + c.max + '°';
       var sm = document.createElement('small'); sm.textContent = 'C'; su.appendChild(sm);
       teks(el('cDesc'), c.desc + (c.bila && !/tiada/i.test(c.desc) ? ' (' + String(c.bila).toLowerCase() + ')' : ''));
-      var p = [];
-      if (typeof c.hujan === 'number') p.push('Peluang hujan ' + c.hujan + '%');
-      if (c.min !== undefined && c.suhu !== undefined) p.push(c.min + '–' + c.max + '°C');
-      teks(el('cHujan'), p.join(' · '));
-      teks(el('cLok'), c.lokasi || '');
-    } else { el('cIk').innerHTML = ''; teks(el('cSuhu'), '-'); teks(el('cDesc'), '-'); teks(el('cHujan'), ''); teks(el('cLok'), ''); }
-    upd('cUpd', c, o.gagal);
+      var p = [c.lokasi || ''];
+      if (c.min !== undefined && c.max !== undefined && c.suhu !== undefined) p.push(c.min + '–' + c.max + '°C');
+      if (typeof c.lembap === 'number') p.push('Lembap ' + c.lembap + '%');
+      teks(el('cHujan'), p.filter(Boolean).join(' · '));
+      (c.amaran || []).forEach(function (a) { var b = document.createElement('b'); b.textContent = '⚠️ ' + a.tajuk; var t = document.createElement('span'); t.textContent = a.teks; A.appendChild(b); A.appendChild(t); });
+      A.hidden = !(c.amaran && c.amaran.length);
+      R.hidden = !c.ramal; teks(R, c.ramal ? '🕒 ' + c.ramal : '');
+      (c.jam || []).forEach(function (x) { var d = document.createElement('span'), h = x.h % 12 || 12; d.innerHTML = '<small></small><i></i><b></b>'; teks(d.firstChild, h + (x.h < 12 ? 'pg' : 'ptg')); d.children[1].innerHTML = IC['w_' + x.ik] || IC.w_awan; teks(d.lastChild, x.t + '°'); J.appendChild(d); });
+      el('cWU').href = c.wu || 'https://www.wunderground.com/';
+    } else {
+      el('cIk').innerHTML = ''; teks(el('cSuhu'), CSM ? '' : '-'); teks(el('cDesc'), CSM ? 'Memuatkan…' : '-'); teks(el('cHujan'), ''); A.hidden = true; R.hidden = true;
+      if (CSM) rangka('cJam', 6);
+    }
+    upd('cUpd', c, o.gagal, c && c.norway ? 'Data: MET Norway' : '');
   }
-  function upd(id, d, gagal) {
-    var e = el(id);
-    if (!d) { e.className = 'upd bad'; e.textContent = muatCS.j ? 'Memuatkan…' : 'Data tidak tersedia'; return; }
-    e.className = 'upd' + (gagal ? ' bad' : '');
-    e.textContent = 'Dikemas kini ' + jam(d.t) + (gagal ? ' · data terakhir (tiada sambungan)' : '') + (d.sumber ? ' · ' + d.sumber : '');
+  function upd(id, d, gagal, kredit) {
+    var e = el(id); e.textContent = '';
+    if (!d) {
+      if (CSM) { e.className = 'upd'; e.textContent = 'Memuatkan…'; return; }
+      e.className = 'upd bad'; e.textContent = 'Data tidak tersedia · ';
+      var b = document.createElement('button'); b.className = 'cuba'; b.setAttribute('data-act', 'csCuba'); b.textContent = 'Cuba lagi'; e.appendChild(b); return;
+    }
+    e.className = 'upd' + (gagal && !CSM ? ' bad' : '');
+    e.textContent = (CSM ? 'Mengemas kini… · ' : '') + 'Dikemas kini ' + jam(d.t) + (gagal && !CSM ? ' · data terakhir (tiada sambungan)' : '') + (d.sumber ? ' · ' + d.sumber : '') + (kredit && !/Norway/.test(d.sumber || '') ? ' · ' + kredit : '');
   }
+  // Peta Windy: iframe dimuat hanya bila dibuka, dibuang bila ditutup (jimat kuota)
+  function bukaWindy() {
+    var c = (CS && CS.c) || {}, z = ZNAMA[zonKini()], la = c.lat || 2.53, lo = c.lon || 102.4, f = document.createElement('iframe');
+    f.src = 'https://embed.windy.com/embed2.html?lat=' + la + '&lon=' + lo + '&detailLat=' + la + '&detailLon=' + lo + '&zoom=8&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=true&calendar=now&type=map&location=coordinates&metricWind=km%2Fh&metricTemp=%C2%B0C';
+    f.title = 'Peta Windy ' + (z ? z[1] : ''); f.setAttribute('loading', 'lazy'); f.setAttribute('referrerpolicy', 'no-referrer');
+    var w = el('wFr'); w.textContent = ''; w.appendChild(f);
+    el('mW').className = 'modal on';
+  }
+  function tutupWindy() { el('mW').className = 'modal'; el('wFr').textContent = ''; }
   function bukaZon() {
     var z = zonKini(), N = el('zNeg');
     if (!N.options.length) Object.keys(ZON).forEach(function (n) { var o = document.createElement('option'); o.value = n; o.textContent = n; N.appendChild(o); });

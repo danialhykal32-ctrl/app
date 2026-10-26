@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://speed.cloudflare.com; media-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src https://embed.windy.com">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0b0614">
 <meta name="color-scheme" content="dark">
@@ -22,7 +22,7 @@
 <body>
 <div class="bg"></div>
 <div class="toast" id="toast" role="status"></div>
-<div class="upd" id="upd" role="status" hidden><span>&#10024; Versi baru BlackFox tersedia</span><button class="lg pri sm" data-act="kemaskini">Kemas kini</button></div>
+<div class="versi" id="versi" role="status" hidden><span>&#10024; Versi baru BlackFox tersedia</span><button class="lg pri sm" data-act="kemaskini">Kemas kini</button></div>
 <div class="tip" id="tip"></div>
 <div class="muat" id="muat"><i data-ic="fox"></i><b>BLACK<em>FOX</em></b></div>
 
@@ -83,6 +83,7 @@
       <button class="ri" data-pg="pin" data-tip="Tukar PIN" aria-label="Tukar PIN"><i data-ic="key"></i></button>
       <button class="ri" data-pg="tg" data-tip="Telegram" aria-label="Telegram"><i data-ic="send"></i></button>
       <button class="ri" data-pg="ai" data-tip="Tanya AI" aria-label="Tanya AI"><i data-ic="spark"></i></button>
+      <button class="ri" data-pg="laju" data-tip="Uji Laju" aria-label="Uji Laju"><i data-ic="gauge"></i></button>
       <button class="ri" data-pg="profil" data-tip="Profil" aria-label="Profil"><i data-ic="user"></i></button>
       <button class="ri out" data-act="keluar" data-tip="Log Keluar" aria-label="Log Keluar"><i data-ic="logout"></i></button>
       <span class="notch" id="notch"></span>
@@ -148,8 +149,12 @@
                 <small class="upd" id="sUpd"></small>
               </div>
               <div class="card a c-cuaca">
-                <div class="ch"><h3>🌦️ Cuaca</h3><span class="lb" id="cLok">-</span></div>
+                <div class="ch"><h3>🌦️ Cuaca</h3><button class="zonb" data-act="zon" id="zonB2" aria-label="Tukar zon">📍 <span id="zonN2">Tampin, Jempol</span> ▾</button></div>
+                <div class="camr" id="cAmaran" role="alert" hidden></div>
                 <div class="cnow"><span class="cic" id="cIk"></span><b id="cSuhu">-</b><div class="cdt"><p id="cDesc">-</p><small id="cHujan"></small></div></div>
+                <p class="cram" id="cRamal" hidden></p>
+                <div class="cjam" id="cJam"></div>
+                <div class="cbtn"><button class="lg sm" data-act="windy">🌀 Peta Windy</button><a class="lg sm" id="cWU" href="https://www.wunderground.com/" target="_blank" rel="noopener">🌦️ Weather Underground</a></div>
                 <small class="upd" id="cUpd"></small>
               </div>
             </div>
@@ -245,6 +250,44 @@
       </div>
 
       <!-- PROFIL -->
+      <!-- UJI LAJU (Cloudflare) -->
+      <div class="page" id="pg-laju">
+        <div class="ph"><div><h1 class="wr">Uji Laju</h1><p>Uji kelajuan WiFi asrama di tempat anda. Keputusan membantu admin cari kawasan yang perlahan.</p></div></div>
+        <div class="sv">
+          <div class="card a lj">
+            <div class="ljm">
+              <svg viewBox="0 0 200 120" aria-hidden="true"><defs><linearGradient id="ljg" x1="0" x2="1"><stop offset="0" stop-color="#22D3EE"/><stop offset="1" stop-color="#7C3AED"/></linearGradient></defs>
+                <path class="ljb" d="M20 110 A80 80 0 0 1 180 110"/><path class="ljv" id="ljArka" d="M20 110 A80 80 0 0 1 180 110" pathLength="100"/></svg>
+              <div class="ljn"><b id="ljNom">0</b><small id="ljUnit">Mbps</small><span id="ljFasa">Sedia</span></div>
+            </div>
+            <div class="ljg">
+              <div><small>⬇ Muat turun</small><b id="ljD">–</b><em>Mbps</em></div>
+              <div><small>⬆ Muat naik</small><b id="ljU">–</b><em>Mbps</em></div>
+              <div><small>Ping</small><b id="ljP">–</b><em>ms</em></div>
+              <div><small>Jitter</small><b id="ljJ">–</b><em>ms</em></div>
+            </div>
+            <div class="ljlok">
+              <label class="sel"><span>Lokasi anda</span><select id="ljLok"><option value="">Pilih blok…</option><option>Block 1</option><option>Block 2</option><option>Block 4</option><option>Blok belakang</option></select></label>
+              <label class="sel"><span>Bilik (pilihan)</span><input class="in" id="ljBilik" maxlength="10" placeholder="cth. A12" autocomplete="off"></label>
+            </div>
+            <button class="lg pri full" data-act="lajuMula" id="ljB">Mula Uji</button>
+            <p class="msg" id="ljMsg"></p>
+            <p class="ljcf">Powered by Cloudflare</p>
+          </div>
+          <aside class="card a coll">
+            <div class="ch"><h3>Tentang ujian</h3></div>
+            <ul class="ljnota">
+              <li>Ujian guna <b>sedikit kuota</b> (maksimum ~25MB).</li>
+              <li>Sekali setiap <b>10 minit</b> sahaja.</li>
+              <li>Pilih blok sebenar anda. Tiada GPS digunakan.</li>
+              <li>Keputusan (lokasi, laju, ping) disimpan untuk peta kawasan slow admin.</li>
+            </ul>
+            <a class="lg sm full" href="https://www.speedtest.net/" target="_blank" rel="noopener">Uji dengan Speedtest by Ookla</a>
+            <div class="ljsej" id="ljSej"></div>
+          </aside>
+        </div>
+      </div>
+
       <div class="page" id="pg-profil">
         <div class="card a pfh">
           <div class="pban" data-art="6"></div>
@@ -324,6 +367,14 @@
   </div>
 </div>
 <!-- Pilih zon waktu solat (disimpan dalam phone sahaja) -->
+<div class="modal" id="mW" role="dialog" aria-modal="true" aria-labelledby="mWT">
+  <div class="mbox mwin">
+    <button class="mx" data-act="wTutup" aria-label="Tutup">&times;</button>
+    <h3 id="mWT">🌀 Peta Windy</h3>
+    <div class="wfr" id="wFr"></div>
+    <p class="mnote">Peta hujan &amp; angin oleh Windy.com. Dimuat hanya bila dibuka.</p>
+  </div>
+</div>
 <div class="modal" id="mZ" role="dialog" aria-modal="true" aria-labelledby="mZT">
   <div class="mbox">
     <button class="mx" data-act="zTutup" aria-label="Tutup">&times;</button>

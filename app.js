@@ -624,7 +624,10 @@
   }
   function autoPasang() {
     var j = jenisPeranti();
-    if (j === 'dipasang' || baruTolak) return;
+    if (j === 'dipasang') return;
+    // dari butang "Pasang App" di status WiFi (?src=pasang) dalam Safari iPhone: terus tunjuk video pasang (abaikan tempoh 3 hari)
+    if (j === 'ios-safari' && new URLSearchParams(location.search).get('src') === 'pasang') { history.replaceState(null, '', location.pathname); panduan(j); return; }
+    if (baruTolak) return;
     if (j === 'android-inapp') { // cuba buka Chrome SEKALI, kemudian tunjuk panduan
       if (!ss('bfx_intent')) { ss('bfx_intent', '1'); location.href = intentChrome(); setTimeout(function () { if (!document.hidden) panduan(j); }, 1500); }
       else panduan(j);

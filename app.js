@@ -452,15 +452,6 @@
       k.style.left = b.offsetLeft + 'px'; k.style.width = b.offsetWidth + 'px';
     });
   }
-  function picit(g) { var k = g && g.querySelector('.knob'); if (!k) return; k.classList.remove('picit'); void k.offsetWidth; k.classList.add('picit'); }
-
-  // ---------- riak cecair pada butang ----------
-  document.addEventListener('pointerdown', function (e) {
-    var b = e.target.closest('.lg, #vDash .pill, #vDash .btn, .rc .lg'); if (!b) return;
-    var r = b.getBoundingClientRect(), d = Math.max(r.width, r.height), s2 = document.createElement('span');
-    s2.className = 'rp'; s2.style.width = s2.style.height = d + 'px'; s2.style.left = (e.clientX - r.left - d / 2) + 'px'; s2.style.top = (e.clientY - r.top - d / 2) + 'px';
-    b.appendChild(s2); setTimeout(function () { s2.remove(); }, 750);
-  });
 
   // ---------- RESIT (cetak dari slot) ----------
   var RC = null;
@@ -518,8 +509,8 @@
     if (t.matches('.qk button')) { hantar(t.textContent); return; }
     if (t.hasAttribute('data-beli')) { e.preventDefault(); beli(t.getAttribute('data-beli')); return; }
     if (t.hasAttribute('data-st')) { STM = t.getAttribute('data-st'); statistik(); kira(document.querySelector('.c-stat')); return; }
-    if (t.hasAttribute('data-nt')) { NT = t.getAttribute('data-nt'); qa('#nTabs button').forEach(function (b) { b.classList.toggle('on', b === t); }); notif(); kanta(); picit(t.parentNode); return; }
-    if (t.hasAttribute('data-f')) { tapis(t.getAttribute('data-f')); kanta(); picit(t.parentNode); return; }
+    if (t.hasAttribute('data-nt')) { NT = t.getAttribute('data-nt'); qa('#nTabs button').forEach(function (b) { b.classList.toggle('on', b === t); }); notif(); kanta(); return; }
+    if (t.hasAttribute('data-f')) { tapis(t.getAttribute('data-f')); kanta(); return; }
     var act = t.getAttribute('data-act');
     if (t.hasAttribute('data-pg') && !act) { e.preventDefault(); go(t.getAttribute('data-pg')); if (t.classList.contains('ri') && matchMedia('(hover:none)').matches) tip(t, 900); return; }
     if (!act) return;
@@ -561,9 +552,10 @@
   document.addEventListener('input', function (e) { if (e.target.hasAttribute('data-digit')) e.target.value = e.target.value.replace(/[^0-9]/g, ''); });
   el('rsF').addEventListener('change', function () { resit(this); });
   qa('.ri, #bOut').forEach(function (b) {
-    b.addEventListener('mouseenter', function () { tip(b); });
-    b.addEventListener('mouseleave', function () { el('tip').className = 'tip'; });
-    b.addEventListener('focus', function () { tip(b, 1200); });
+    // tooltip hanya untuk tetikus & papan kekunci; mouseenter pada skrin sentuh iPhone menyebabkan tekan dua kali
+    b.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') tip(b); });
+    b.addEventListener('pointerleave', function () { el('tip').className = 'tip'; });
+    b.addEventListener('focus', function () { if (b.matches(':focus-visible')) tip(b, 1200); });
   });
   window.addEventListener('resize', function () { takuk(); kanta(); el('tip').className = 'tip'; });
 

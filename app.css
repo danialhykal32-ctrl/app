@@ -4,14 +4,14 @@
 --card:rgba(22,22,25,.58);--card2:rgba(255,255,255,.045);--hi:#ededee;--ease:cubic-bezier(.65,0,.35,1);--out:cubic-bezier(.2,.75,.2,1);
 --fi:"Inter",-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
 --r:22px;--gap:24px;--pad:22px}
-html{background:#050506;color-scheme:dark;-webkit-text-size-adjust:100%}
+html{background:#0b0614;color-scheme:dark;-webkit-text-size-adjust:100%}
 html,body{margin:0;padding:0}
 body{color:var(--tx);font-family:var(--fi);-webkit-font-smoothing:antialiased;min-height:100vh;min-height:100dvh;overflow-x:hidden;font-size:14px}
 button,input{font:inherit;color:inherit}
 button{background:none;border:0;padding:0;cursor:pointer}
 a{color:inherit}
 [hidden]{display:none!important}
-.bg{position:fixed;inset:0;z-index:0;pointer-events:none;background:#050506 url(bg.svg) center/cover no-repeat}
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;background:linear-gradient(160deg,#0b0614 0%,#140926 55%,#1a0b2e 100%)}
 .view{display:none;position:relative;z-index:1}
 .view.on{display:block;animation:rise .55s var(--out) backwards}
 @keyframes rise{from{opacity:0;transform:translateY(14px);filter:blur(4px)}}
@@ -482,19 +482,9 @@ button.ib{position:relative}button.ib:after{content:"";position:absolute;inset:-
 #vDash,.rc,.modal,.sheet{--n0:#0F172A;--n1:#7C3AED;--n2:#22D3EE;--n3:#A78BFA;--n4:#EDE9FE;
   --tx:#EDE9FE;--mu:rgba(237,233,254,.66);--mu2:rgba(237,233,254,.44);--br:rgba(237,233,254,.12);--br2:rgba(237,233,254,.24);
   --card:rgba(30,27,75,.32);--card2:rgba(237,233,254,.06);--hi:#EDE9FE;--or:#A78BFA;--spring:cubic-bezier(.34,1.56,.64,1)}
-body.dash{background:#0F172A}
-body.dash .bg{display:none}
 #vDash{position:relative;height:100vh;height:100dvh;padding:14px 18px 16px;flex-direction:column;gap:14px;overflow:hidden;
-  background:radial-gradient(120% 90% at 85% -10%,rgba(124,58,237,.35),transparent 55%),radial-gradient(90% 70% at -10% 110%,rgba(34,211,238,.18),transparent 60%),#0F172A}
+  background:none}
 #vDash.on{display:flex}
-/* sfera neon terapung (ganti bilik kayu dalam video) */
-.orbs{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}
-.orbs i{position:absolute;border-radius:50%;filter:blur(2px);opacity:.9;animation:apung 14s ease-in-out infinite}
-.orbs .o1{width:340px;height:340px;right:-90px;top:60px;background:radial-gradient(circle at 30% 30%,#c4b5fd,#7C3AED 55%,#4c1d95);box-shadow:0 0 120px rgba(124,58,237,.55)}
-.orbs .o2{width:220px;height:220px;left:-70px;bottom:40px;background:radial-gradient(circle at 30% 30%,#a5f3fc,#22D3EE 55%,#0e7490);box-shadow:0 0 100px rgba(34,211,238,.45);animation-delay:-5s}
-.orbs .o3{width:120px;height:120px;left:42%;top:-40px;background:radial-gradient(circle at 30% 30%,#ede9fe,#A78BFA 60%,#6d28d9);opacity:.75;animation-delay:-9s}
-.orbs .o4{width:90px;height:90px;right:30%;bottom:-30px;background:radial-gradient(circle at 30% 30%,#ddd6fe,#7C3AED);opacity:.6;animation-delay:-2s}
-@keyframes apung{50%{transform:translate(14px,-18px) scale(1.04)}}
 /* kaca */
 .gls{position:relative;z-index:1;background:linear-gradient(160deg,rgba(237,233,254,.11),rgba(237,233,254,.04) 45%,rgba(124,58,237,.07));border:1px solid rgba(237,233,254,.16);
   -webkit-backdrop-filter:blur(26px) saturate(160%);backdrop-filter:blur(26px) saturate(160%);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),inset 0 0 0 1px rgba(255,255,255,.02),0 30px 70px -30px rgba(2,6,23,.9)}
@@ -509,8 +499,7 @@ body.dash .bg{display:none}
 .wt{display:flex;flex-direction:column;text-align:left;min-width:0}.wt small{font-size:11px;color:var(--mu)}.wt b{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ask{flex:1;min-width:0;max-width:560px;margin:0 auto;display:flex;align-items:center;gap:10px;min-height:44px;padding:0 16px 0 8px;border-radius:999px;background:rgba(15,23,42,.35);border:1px solid var(--br);color:var(--mu);font-size:13px;text-align:left;transition:border-color .3s,background .3s}
 .ask:hover{border-color:rgba(167,139,250,.5);background:rgba(15,23,42,.5)}
-.orb{width:28px;height:28px;flex:none;border-radius:50%;background:conic-gradient(from 0deg,#22D3EE,#7C3AED,#A78BFA,#22D3EE);box-shadow:0 0 16px rgba(124,58,237,.8);animation:pusing 4s linear infinite;position:relative}
-.orb:after{content:"";position:absolute;inset:4px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,rgba(237,233,254,.4) 40%,transparent 70%)}
+.orb{width:30px;height:30px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#c4b5fd;background:rgba(124,58,237,.22);border:1px solid rgba(167,139,250,.4)}.orb i{width:15px;height:15px}
 @keyframes pusing{to{transform:rotate(360deg)}}
 .ask .askt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tr{display:flex;align-items:center;gap:10px;flex:none}
@@ -518,7 +507,7 @@ body.dash .bg{display:none}
 #vDash .line i{background:#22D3EE;box-shadow:0 0 10px #22D3EE}
 #vDash .line.down i{background:#fb7185;box-shadow:0 0 10px #fb7185}
 .gb{position:relative;width:44px;height:44px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--n0);background:radial-gradient(circle at 35% 25%,#fff,#EDE9FE 60%,#ddd6fe);box-shadow:inset 0 -3px 6px rgba(124,58,237,.25),0 8px 20px -8px rgba(237,233,254,.6);transition:transform .45s var(--spring)}
-.gb i{width:19px;height:19px}.gb:hover{transform:scale(1.08)}.gb:active{transform:scale(.9)}
+.gb i{width:19px;height:19px}
 /* pentas kaca besar + rel ikon nipis */
 .stage{flex:1;min-height:0;display:grid;grid-template-columns:62px minmax(0,1fr);gap:26px;padding:22px 26px 22px 16px;border-radius:34px}
 #vDash .rail{width:62px;height:auto;align-self:center;max-height:100%;gap:10px;padding:12px 0;border-radius:999px;background:rgba(237,233,254,.1);border:1px solid rgba(237,233,254,.18);
@@ -548,13 +537,9 @@ body.dash .bg{display:none}
   background:linear-gradient(180deg,rgba(237,233,254,.2),rgba(237,233,254,.06));border:1px solid rgba(237,233,254,.26);
   -webkit-backdrop-filter:blur(14px) saturate(170%);backdrop-filter:blur(14px) saturate(170%);
   box-shadow:inset 0 1px 1px rgba(255,255,255,.4),inset 0 -10px 18px rgba(15,23,42,.28),0 10px 26px -14px rgba(2,6,23,.9);
-  transition:transform .5s var(--spring),box-shadow .35s,filter .35s,background .35s}
+  transition:transform .1s ease,filter .1s ease}
 .lg i{width:18px;height:18px;position:relative;z-index:2}.lg span{position:relative;z-index:2}
 .lg:before{content:"";position:absolute;z-index:1;left:8%;right:8%;top:2px;height:46%;border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0));opacity:.55;pointer-events:none}
-.lg:after{content:"";position:absolute;z-index:1;top:-20%;bottom:-20%;left:-70%;width:45%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-18deg);transition:left .9s var(--ease);pointer-events:none}
-.lg:hover{transform:translateY(-2px) scale(1.03);filter:brightness(1.08)}
-.lg:hover:after{left:135%}
-.lg:active{transform:scale(.94,.9);transition-duration:.14s}
 .lg:disabled{opacity:.55;pointer-events:none}
 .lg.pri{color:#fff;background:linear-gradient(180deg,rgba(167,139,250,.96),rgba(124,58,237,.92));border-color:rgba(237,233,254,.5);
   box-shadow:inset 0 1px 1px rgba(255,255,255,.7),inset 0 -10px 18px rgba(76,29,149,.5),0 14px 30px -10px rgba(124,58,237,.85)}
@@ -564,14 +549,10 @@ body.dash .bg{display:none}
 .lg.light{color:#0F172A;background:linear-gradient(180deg,#fff,#EDE9FE);border-color:#fff;box-shadow:inset 0 -6px 12px rgba(167,139,250,.25),0 12px 26px -12px rgba(237,233,254,.6)}
 .lg.sm{min-height:44px;padding:0 16px;font-size:13px}
 .lg.full{width:100%;margin-top:12px}
-.lg .rp{position:absolute;z-index:1;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.55),rgba(255,255,255,0) 70%);transform:scale(0);animation:riak .7s ease-out forwards;pointer-events:none}
-@keyframes riak{to{transform:scale(3.2);opacity:0}}
 /* butang lama dalam dashboard ikut gaya kaca cecair */
 #vDash .pill,#vDash .btn,.rc .btn{position:relative;overflow:hidden;isolation:isolate;border-radius:999px;font-weight:600;color:#fff;
   background:linear-gradient(180deg,rgba(167,139,250,.96),rgba(124,58,237,.92));border:1px solid rgba(237,233,254,.5);
-  box-shadow:inset 0 1px 1px rgba(255,255,255,.7),inset 0 -10px 18px rgba(76,29,149,.5),0 14px 30px -12px rgba(124,58,237,.8);transition:transform .5s var(--spring),filter .3s}
-#vDash .pill:hover,#vDash .btn:hover{transform:translateY(-2px) scale(1.03);filter:brightness(1.08);background:linear-gradient(180deg,rgba(167,139,250,.96),rgba(124,58,237,.92))}
-#vDash .pill:active,#vDash .btn:active{transform:scale(.94,.9);transition-duration:.14s}
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.7),inset 0 -10px 18px rgba(76,29,149,.5),0 14px 30px -12px rgba(124,58,237,.8);transition:transform .1s ease,filter .1s ease}
 #vDash .pill.gh{color:#EDE9FE;background:linear-gradient(180deg,rgba(237,233,254,.2),rgba(237,233,254,.06));border-color:rgba(237,233,254,.26);box-shadow:inset 0 1px 1px rgba(255,255,255,.4),0 10px 26px -14px rgba(2,6,23,.9)}
 #vDash .pkf .pill{color:#0F172A;background:linear-gradient(180deg,rgba(165,243,252,.98),rgba(34,211,238,.9));border-color:rgba(237,233,254,.6);box-shadow:inset 0 1px 1px rgba(255,255,255,.8),0 12px 26px -12px rgba(34,211,238,.7)}
 #vDash .ib{color:var(--n3)}
@@ -590,9 +571,7 @@ body.dash .bg{display:none}
 #vDash .tabs button.on:after{display:none}
 .knob{position:absolute;z-index:1;top:4px;bottom:4px;left:4px;width:60px;border-radius:999px;pointer-events:none;
   background:radial-gradient(120% 140% at 30% 20%,#fff,#EDE9FE 45%,#c4b5fd);box-shadow:inset 0 1px 1px #fff,inset 0 -4px 8px rgba(124,58,237,.3),0 6px 16px -6px rgba(124,58,237,.8);
-  transition:left .55s var(--spring),width .55s var(--spring)}
-.knob.picit{animation:kanta .55s var(--spring)}
-@keyframes kanta{40%{transform:scale(1.12,.86)}}
+  transition:left .25s ease,width .25s ease}
 /* ---------- UTAMA (Glassy Dashboard V2) ---------- */
 .v2r1{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,1.05fr);gap:18px;margin-bottom:18px}
 .v2r2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:18px;margin-bottom:18px}
@@ -608,8 +587,6 @@ body.dash .bg{display:none}
 .s3 span{display:flex;flex-direction:column;gap:2px;min-width:0}.s3 small{font-size:11px;color:var(--mu2)}.s3 b{font-size:18px;font-weight:600}.s3 em{font-style:normal;font-size:10.5px;color:var(--mu)}
 .quad{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;gap:14px;padding:10px;border-radius:24px;background:rgba(237,233,254,.05);border:1px solid var(--br)}
 .tile{display:flex;flex-direction:column;align-items:flex-start;text-align:left;padding:16px;min-height:132px;cursor:pointer;color:var(--tx);transition:transform .5s var(--spring)}
-button.tile:hover{transform:translateY(-3px)}
-button.tile:active{transform:scale(.97)}
 .tt{display:flex;justify-content:space-between;align-items:center;width:100%;font-size:12px;color:var(--mu)}
 .ti{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(237,233,254,.1);border:1px solid var(--br)}.ti i{width:15px;height:15px}
 .tile>b{font-size:clamp(24px,2.2vw,32px);font-weight:600;letter-spacing:-.02em;margin:auto 0 8px;line-height:1.1}
@@ -640,17 +617,16 @@ button.tile:active{transform:scale(.97)}
 #vDash .ni.cy .nic{background:rgba(34,211,238,.14);border-color:rgba(34,211,238,.4);color:#22D3EE}
 #vDash .ni.bad .nic{background:rgba(251,113,133,.12);border-color:rgba(251,113,133,.4);color:#fda4af}
 #vDash .ni .tg{background:#EDE9FE;color:#0F172A}
-#vDash button.ni{width:100%;text-align:left;cursor:pointer;transition:transform .4s var(--spring)}
-#vDash button.ni:hover{transform:translateX(3px)}
+#vDash button.ni{width:100%;text-align:left;cursor:pointer;transition:transform .1s ease,filter .1s ease}
+
 /* solat & cuaca dalam tema neon */
 #vDash .swk .kini{background:#EDE9FE;border-color:#EDE9FE;box-shadow:0 0 0 1px rgba(34,211,238,.6),0 10px 24px -12px rgba(124,58,237,.9)}
 #vDash .snx b em{color:#22D3EE}
 #vDash .cic{background:rgba(34,211,238,.12);border-color:rgba(34,211,238,.35);color:#22D3EE}
 #vDash .zonb{background:rgba(15,23,42,.4)}
 /* seni kad (ganti serpihan oren) */
-#vDash [data-art]{background:radial-gradient(110% 90% at 75% 30%,rgba(124,58,237,.75),rgba(124,58,237,.12) 55%,transparent 75%),radial-gradient(70% 70% at 15% 90%,rgba(34,211,238,.45),transparent 70%),linear-gradient(135deg,#1e1b4b,#0F172A)}
-#vDash [data-art]:before{opacity:.25}
-#vDash [data-art]:after{background:radial-gradient(40% 40% at 70% 35%,rgba(237,233,254,.35),transparent 70%)}
+#vDash [data-art]{background:linear-gradient(150deg,rgba(124,58,237,.55),rgba(46,16,101,.7) 60%,rgba(26,11,46,.9))}
+#vDash [data-art]:before,#vDash [data-art]:after{display:none}
 #vDash .pk.hot{border-color:rgba(34,211,238,.55);box-shadow:0 0 0 1px rgba(34,211,238,.3),0 24px 50px -30px rgba(34,211,238,.6)}
 #vDash .pk.hot .tag{background:linear-gradient(90deg,#22D3EE,#7C3AED);color:#fff}
 #vDash .pk .gb{background:rgba(15,23,42,.45);border-color:rgba(237,233,254,.3);color:var(--tx);box-shadow:none;width:72px;height:72px}
@@ -708,7 +684,7 @@ button.tile:active{transform:scale(.97)}
 
 /* ---------- RESPONSIF (V2) ---------- */
 @media (max-width:1279px){.v2r1{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.c-chart{grid-column:1/-1}.ask .askt{font-size:12.5px}}
-@media (max-width:1023px){.v2r2{grid-template-columns:1fr}.orbs .o1{width:240px;height:240px}}
+@media (max-width:1023px){.v2r2{grid-template-columns:1fr}}
 @media (max-width:719px){
   #vDash{height:auto;min-height:100dvh;overflow:visible;padding:8px 8px 24px 76px;gap:10px}
   .topbar{min-height:54px;padding:5px;gap:8px}
@@ -735,3 +711,32 @@ button.tile:active{transform:scale(.97)}
 #vDash .pfa{flex-wrap:wrap}
 @media (max-width:719px){#vDash .pfa .chip{flex-basis:100%;justify-content:center}#vDash .pfa .pill{flex:1 1 130px;min-width:0;padding:0 12px}}
 @media (hover:none){#vDash .seg button,#vDash .tabs button,#vDash .tog button{min-height:44px}#vDash .zonb{min-height:44px}}
+
+/* ================================================================
+   V3 (27/10): butang tekan ringkas (tiada riak/spring), sekali tekan,
+   latar ungu neon gelap rata, log masuk selaras dengan dashboard
+   ================================================================ */
+button,.lg,.btn,.pill,.ghost,.gb,.ri,.tile,.ask,a.btn,a.lg,[data-act],[data-pg],[data-beli],[data-f],[data-nt]{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+.lg,.btn,.pill,.ghost,.gb,.ri,button.tile,button.ni,.ask,.seg button,.tabs button,.tog button,.pk,.mc,.pillcard{transition:transform .1s ease,filter .1s ease,background-color .1s ease}
+.lg:active,.btn:active,.pill:active,.ghost:active,.gb:active,.ri:active,button.tile:active,button.ni:active,.ask:active,.seg button:active,.tabs button:active,.tog button:active,.pk:active,.mc:active,.pillcard:active{transform:scale(.97);filter:brightness(.85)}
+.pillcard:hover,.mc:hover,.pk:hover{transform:none}
+@media (hover:hover) and (pointer:fine){.lg:hover,#vDash .pill:hover,#vDash .btn:hover,#vAuth .btn:hover,#vAuth .ghost:hover,.gb:hover{filter:brightness(1.08)}}
+/* log masuk / daftar: kaca & butang sama seperti dashboard */
+#vAuth{--tx:#EDE9FE;--mu:rgba(237,233,254,.66);--br2:rgba(237,233,254,.24)}
+#vAuth .auth{background:linear-gradient(160deg,rgba(237,233,254,.11),rgba(237,233,254,.04) 45%,rgba(124,58,237,.07));border-color:rgba(237,233,254,.16);
+  -webkit-backdrop-filter:blur(26px) saturate(160%);backdrop-filter:blur(26px) saturate(160%);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 30px 70px -30px rgba(2,6,23,.9)}
+#vAuth .auth:before{background:rgba(167,139,250,.06)}
+#vAuth .auth .sh{display:none}
+#vAuth .sa p,#vAuth .note{color:var(--mu)}
+#vAuth .fld{border-color:rgba(237,233,254,.26)}#vAuth .fld:after{background:linear-gradient(90deg,#22D3EE,#7C3AED)}
+#vAuth .fld>i{color:#A78BFA}
+#vAuth .in{color:#EDE9FE}#vAuth .in::placeholder{color:rgba(237,233,254,.45)}
+#vAuth .btn{color:#fff;background:linear-gradient(180deg,rgba(167,139,250,.96),rgba(124,58,237,.92));border:1px solid rgba(237,233,254,.5);
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.7),inset 0 -10px 18px rgba(76,29,149,.5),0 14px 30px -12px rgba(124,58,237,.8)}
+#vAuth .ghost{color:#EDE9FE;background:linear-gradient(180deg,rgba(237,233,254,.2),rgba(237,233,254,.06));border:1px solid rgba(237,233,254,.26);box-shadow:inset 0 1px 1px rgba(255,255,255,.4),0 10px 26px -14px rgba(2,6,23,.9)}
+#vAuth .line{border-color:rgba(237,233,254,.24);background:rgba(15,23,42,.35)}
+#vAuth .line i{background:#22D3EE;box-shadow:0 0 10px #22D3EE}
+#vAuth .line.down i{background:#fb7185;box-shadow:0 0 10px #fb7185}
+.muat b{color:#EDE9FE}
+/* Tanya AI: barisan cadangan soalan tidak lagi melebarkan halaman di phone */
+.sv>*,.chat{min-width:0}.qk{max-width:100%}

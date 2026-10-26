@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; media-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#050506">
 <meta name="color-scheme" content="dark">
@@ -143,6 +143,19 @@
                 </div>
               </div>
             </div>
+            <div class="row4">
+              <div class="card a c-solat">
+                <div class="ch"><h3>🕌 Waktu Solat</h3><button class="zonb" data-act="zon" id="zonB" aria-label="Tukar zon">📍 <span id="zonN">Tampin, Jempol</span> ▾</button></div>
+                <div class="snx"><b id="sNext">-</b><small id="sHijri"></small></div>
+                <div class="swk" id="sWaktu"></div>
+                <small class="upd" id="sUpd"></small>
+              </div>
+              <div class="card a c-cuaca">
+                <div class="ch"><h3>🌦️ Cuaca</h3><span class="lb" id="cLok">-</span></div>
+                <div class="cnow"><span class="cic" id="cIk"></span><b id="cSuhu">-</b><div class="cdt"><p id="cDesc">-</p><small id="cHujan"></small></div></div>
+                <small class="upd" id="cUpd"></small>
+              </div>
+            </div>
           </div>
           <aside class="kanan">
             <div class="a cal">
@@ -262,7 +275,7 @@
           <div class="pfr">
             <span class="pav" id="pav">B</span>
             <div class="pfn"><h2 id="pnama">-</h2><p><span id="pm">-</span> &middot; <span id="ppl">-</span></p><small><i data-ic="send"></i><span id="ptg">-</span><i data-ic="device"></i><span id="pper">-</span></small></div>
-            <div class="pfa"><span class="chip ok" id="pst"><i class="d"></i>Aktif</span><button class="pill" data-pg="pin"><i data-ic="key"></i><span>Tukar PIN</span></button></div>
+            <div class="pfa"><span class="chip ok" id="pst"><i class="d"></i>Aktif</span><button class="pill gh" data-act="pasangApp"><span>📲 Pasang App</span></button><button class="pill" data-pg="pin"><i data-ic="key"></i><span>Tukar PIN</span></button></div>
           </div>
         </div>
         <div class="stats">
@@ -296,15 +309,33 @@
   </div>
 </section>
 
-<!-- Pasang app -->
-<div class="sheet" id="sA">
-  <div class="row"><img src="bfc180.png" alt=""><div><h3>Pasang BlackFox App?</h3><p>Buka terus dari skrin utama, penuh skrin, tanpa browser.</p></div></div>
-  <div class="btns"><button data-act="aNanti">Nanti</button><button class="pri" data-act="aPasang">Pasang</button></div>
+<!-- Pasang app: Android/laptop (beforeinstallprompt) -->
+<div class="sheet" id="sA" role="dialog" aria-labelledby="sAT">
+  <div class="row"><img src="bfc180.png" alt=""><div><h3 id="sAT">Pasang BlackFox App?</h3><p id="sAP">Buka terus dari skrin utama, penuh skrin, tanpa browser.</p></div></div>
+  <p class="sAx" id="sAx" hidden><a href="#" data-act="ikonTiada">Ikon tak keluar?</a></p>
+  <div class="btns" id="sAB"><button data-act="aNanti">Nanti</button><button class="pri" data-act="aPasang">Pasang</button></div>
 </div>
-<div class="sheet" id="sI">
-  <div class="row"><img src="bfc180.png" alt=""><div><h3>Pasang BlackFox App</h3><p>iPhone: pasang dalam beberapa langkah (Safari).</p></div></div>
-  <ol><li>Tekan <b>&bull;&bull;&bull;</b> atau <b>&equiv;</b> di bar alamat</li><li>Pilih <b>Share</b></li><li>Pilih <b>Add to Home Screen</b></li><li>Tekan <b>Add</b></li></ol>
-  <div class="btns"><button class="pri" data-act="iOk">Faham</button></div>
+<!-- Panduan pasang ikut peranti (iPhone video, Chrome iOS, in-app, Samsung, laptop) -->
+<div class="modal" id="mP" role="dialog" aria-modal="true" aria-labelledby="mPT">
+  <div class="mbox">
+    <button class="mx" data-act="pTutup" aria-label="Tutup">&times;</button>
+    <div class="row"><img src="bfc180.png" alt=""><div><h3 id="mPT">Pasang BlackFox App</h3><p id="mPS"></p></div></div>
+    <div class="vid" id="mPV" hidden><video id="pVid" muted autoplay loop playsinline disablepictureinpicture preload="none" poster="pasang-ios.jpg"></video></div>
+    <ol id="mPL"></ol>
+    <p class="mnote" id="mPN" hidden></p>
+    <div class="btns" id="mPB"></div>
+  </div>
+</div>
+<!-- Pilih zon waktu solat (disimpan dalam phone sahaja) -->
+<div class="modal" id="mZ" role="dialog" aria-modal="true" aria-labelledby="mZT">
+  <div class="mbox">
+    <button class="mx" data-act="zTutup" aria-label="Tutup">&times;</button>
+    <h3 id="mZT">📍 Pilih Zon</h3>
+    <p class="mnote">Zon JAKIM untuk waktu solat &amp; cuaca. Disimpan dalam phone ini sahaja, tidak dihantar ke server. Tiada GPS.</p>
+    <label class="sel"><span>Negeri</span><select id="zNeg"></select></label>
+    <label class="sel"><span>Zon</span><select id="zZon"></select></label>
+    <div class="btns"><button data-act="zAsrama">Kembali ke Asrama</button><button class="pri" data-act="zSimpan">Simpan</button></div>
+  </div>
 </div>
 <script src="app.js"></script>
 </body>

@@ -41,9 +41,35 @@
     chart: P('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>'),
     card: P('<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M14 10h4M14 14h4"/>'),
     lock: P('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'),
-    alert: P('<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/>')
+    alert: P('<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/>'),
+    w_cerah: P('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
+    w_awan: P('<path d="M8 4.5a3.5 3.5 0 0 1 5.6 2.2"/><path d="M7 19h10a4 4 0 0 0 .5-8 5.5 5.5 0 0 0-10.6 1.5A3.3 3.3 0 0 0 7 19z"/>'),
+    w_mendung: P('<path d="M6.5 19h11a4.5 4.5 0 0 0 .4-9 6 6 0 0 0-11.6 1.6A3.7 3.7 0 0 0 6.5 19z"/>'),
+    w_hujan: P('<path d="M6.5 15h11a4 4 0 0 0 .4-8 6 6 0 0 0-11.6 1.6A3.3 3.3 0 0 0 6.5 15z"/><path d="M8 18l-1 3M12 18l-1 3M16 18l-1 3"/>'),
+    w_ribut: P('<path d="M6.5 14h11a4 4 0 0 0 .4-8 6 6 0 0 0-11.6 1.6A3.3 3.3 0 0 0 6.5 14z"/><path d="M12.5 15l-2.5 4h3l-2 4"/>'),
+    w_kabus: P('<path d="M4 9h16M3 13h18M5 17h14M8 21h8"/>')
   };
   function ikon(r) { qa('i[data-ic]', r).forEach(function (i) { if (!i.firstChild && IC[i.getAttribute('data-ic')]) i.innerHTML = IC[i.getAttribute('data-ic')]; }); }
+
+  // ---------- peranti & browser ----------
+  var ua = navigator.userAgent;
+  var dipasang = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  var ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  var android = /Android/i.test(ua);
+  var iosVer = (function () { var m = ua.match(/OS (\d+)[_.]\d/) || ua.match(/Version\/(\d+)/); return ios && m ? +m[1] : 0; })();
+  // Browser dalam app (Telegram, WhatsApp, Instagram, Facebook, TikTok...). iOS: WKWebView tiada token "Safari/".
+  var inApp = /FBAN|FBAV|FB_IAB|FBIOS|Instagram|WhatsApp|Telegram|TikTok|musical_ly|Bytedance|Line\/|Snapchat|GSA\/|; wv\)/i.test(ua) || (ios && !dipasang && !/Safari\//.test(ua));
+  function jenisPeranti() {
+    if (dipasang) return 'dipasang';
+    if (inApp) return ios ? 'ios-inapp' : (android ? 'android-inapp' : 'lain');
+    if (ios) return /CriOS|FxiOS|EdgiOS/.test(ua) ? 'ios-lain' : 'ios-safari';
+    if (/SamsungBrowser/.test(ua)) return 'samsung';
+    if (android) return /Firefox/.test(ua) ? 'firefox-android' : 'android';
+    if (/Macintosh/.test(ua) && /Safari\//.test(ua) && !/Chrome|Chromium|Edg|Firefox/.test(ua)) return 'mac-safari';
+    if (/Edg\/|Chrome\//.test(ua)) return 'laptop';
+    return 'lain';
+  }
+  function ss(k, v) { try { if (v === undefined) return sessionStorage.getItem(k); sessionStorage.setItem(k, v); } catch (e) { return null; } }
 
   // ---------- API ----------
   function api(req, cb) {
@@ -51,7 +77,7 @@
     var ctl = window.AbortController ? new AbortController() : null, t = ctl && setTimeout(function () { ctl.abort(); }, 45000);
     fetch(API, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ api: 1, req: req }), redirect: 'follow', signal: ctl ? ctl.signal : undefined })
       .then(function (r) { return r.json(); })
-      .then(function (r) { clearTimeout(t); r = r || {}; if (r.keluar && TOK) keluar(); if (r.info) setInfo(r.info); cb(r); })
+      .then(function (r) { clearTimeout(t); r = r || {}; if (r.keluar && TOK) keluar(true); else if (r.token && TOK) { TOK = r.token; ls('bfx_t', TOK); } if (r.info) setInfo(r.info); cb(r); })
       .catch(function () { clearTimeout(t); cb({ ok: false, msg: navigator.onLine === false ? 'Tiada internet. Sambung WiFi atau data telefon.' : 'Tiada sambungan ke pelayan. Cuba lagi.' }); });
   }
 
@@ -95,11 +121,13 @@
   function tunjukDash() {
     el('vAuth').className = 'view'; el('vDash').className = 'view on';
     var rl = el('rail'); rl.classList.remove('mula'); void rl.offsetWidth; rl.classList.add('mula');
-    PG = ''; go('utama');
+    PG = ''; go('utama'); muatCS();
   }
-  function keluar() {
+  // tamat = token sudah tidak sah di server (tak perlu beritahu server)
+  function keluar(tamat) {
     var tetamu = !TOK;
-    TOK = ''; AK = null; PROF = null; TG = null; ls('bfx_t', null);
+    if (TOK && !tamat) api({ a: 'keluar' }, function () {});
+    TOK = ''; AK = null; PROF = null; TG = null; ls('bfx_t', null); ls('bfx_ak', null);
     document.body.classList.remove('tetamu');
     el('vDash').className = 'view'; el('vAuth').className = 'view on';
     if (!tetamu) { el('lp').value = ''; el('log').textContent = ''; }
@@ -163,7 +191,7 @@
 
   // ---------- data akaun ----------
   function setAk(a) {
-    AK = a;
+    AK = a; ls('bfx_ak', JSON.stringify(a));
     var nama = String(a.nama || a.m), depan = nama.split(' ')[0], hari = hariLagi(a), pt = a.kuota > 0 ? Math.max(0, Math.min(1, a.guna / a.kuota)) : 0;
     var h = el('salam'); h.removeAttribute('data-w'); h.textContent = 'Assalamualaikum, ' + depan.charAt(0).toUpperCase() + depan.slice(1).toLowerCase();
     teks(el('bsub'), a.ada ? (a.aktif ? 'Pelan ' + a.pelan + ' aktif sehingga ' + String(a.tamat).slice(0, 10) + '. Sambung WiFi FOX ULTRA 5G dan tekan Sambung WiFi.' : 'Pelan anda telah tamat. Pilih pakej baharu untuk teruskan.') : 'Belum ada pelan. Pilih pakej atau ambil percuma 5GB untuk mula.');
@@ -211,6 +239,7 @@
     if (a.ada && a.aktif && hariLagi(a) <= 3) L.push({ j: 'akaun', c: '', ic: 'clock', b: 'Pakej hampir tamat', p: 'Tamat ' + String(a.tamat).slice(0, 16) + '. Perbaharui awal supaya internet tidak terputus.' });
     if (a.m && !a.ada) L.push({ j: 'akaun', c: '', ic: 'bag', b: 'Belum ada pelan', p: 'Pilih pakej atau ambil percuma 5GB.' });
     if (TG && !TG.linked) L.push({ j: 'akaun', c: '', ic: 'send', b: 'Sambung Telegram', p: 'Terima amaran kuota & notis gangguan terus ke Telegram.' });
+    if (ios) L.push({ j: 'akaun', c: '', ic: 'wifi', b: 'Tip iPhone: auto log masuk WiFi', p: 'Settings → Wi-Fi → ⓘ (FOX ULTRA 5G) → Private Wi-Fi Address → Off / Fixed. Supaya router kenal phone anda dan auto-login berfungsi.', tg: 'Tip' });
     var n = el('notif'); n.textContent = '';
     var F = L.filter(function (x) { return NT === 'semua' || x.j === NT; });
     if (!F.length) { var k = document.createElement('div'); k.className = 'kosong'; k.textContent = 'Tiada notifikasi baharu.'; n.appendChild(k); return; }
@@ -271,8 +300,8 @@
       location.href = u;
     });
   }
-  function sambung() {
-    var b = el('bSambung'), s = b.querySelector('span'); teks(s, 'Menyediakan…');
+  function sambung(auto) {
+    var b = el('bSambung'), s = b.querySelector('span'); teks(s, auto ? 'Menyambung WiFi…' : 'Menyediakan…');
     api({ a: 'sambung' }, function (r) { teks(s, 'Sambung WiFi'); if (!r.ok) { toast(r.msg || 'Gagal.'); return; } location.href = r.url; });
   }
   function percuma() { toast('Mengaktifkan…'); api({ a: 'percuma' }, function (r) { toast(r.ok ? 'Percuma 5GB diaktifkan!' : (r.msg || 'Gagal.')); if (r.akaun) setAk(r.akaun); }); }
@@ -322,8 +351,8 @@
     teks(el('tgH'), TG.linked ? 'Telegram Disambung' : 'Sambung Telegram');
     teks(el('mTgS'), TG.linked ? 'Disambung ✓' : 'Notis · PIN · AI');
   }
-  function salin(t) {
-    try { navigator.clipboard.writeText(t).then(function () { toast('Kod disalin'); }, function () { toast(t); }); }
+  function salin(t, ok) {
+    try { navigator.clipboard.writeText(t).then(function () { toast(ok || 'Kod disalin'); }, function () { toast(t); }); }
     catch (e) { toast(t); }
   }
 
@@ -333,7 +362,7 @@
   function hantar(q) {
     var t = q || el('cq').value; if (!t) return; el('cq').value = ''; tambah('u', t);
     var w = document.createElement('div'); w.className = 'b a'; w.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>'; el('log').appendChild(w); el('log').scrollTop = 99999;
-    api({ a: 'chat', msg: t, m: AK ? AK.m : el('lm').value }, function (r) {
+    api({ a: 'chat', msg: t, m: AK ? AK.m : el('lm').value, zon: zonKini() }, function (r) {
       w.remove(); tambah('a', r.ok ? r.balas : (r.msg || 'Ralat'));
       if (TOK) api({ a: 'akaun' }, function (x) { if (x.ok) setAk(x.akaun); });
     });
@@ -405,7 +434,15 @@
       case 'aiLupa': document.body.classList.add('tetamu'); el('vAuth').className = 'view'; el('vDash').className = 'view on'; PG = ''; go('ai'); setTimeout(function () { hantar('Saya lupa PIN'); }, 500); break;
       case 'aNanti': tolak('sA'); break;
       case 'aPasang': pasang(); break;
-      case 'iOk': tolak('sI'); break;
+      case 'aOk': el('sA').className = 'sheet'; break;
+      case 'ikonTiada': el('sA').className = 'sheet'; panduan('android'); break;
+      case 'pasangApp': if (ev) { pasangSheet(); } else panduan(jenisPeranti()); break;
+      case 'pTutup': tutupPanduan(); break;
+      case 'salinLink': salin(linkApp(), 'Link disalin. Tampal dalam Safari / Chrome.'); break;
+      case 'zon': bukaZon(); break;
+      case 'zTutup': el('mZ').className = 'modal'; break;
+      case 'zAsrama': simpanZon(''); break;
+      case 'zSimpan': simpanZon(el('zZon').value); break;
     }
   });
   function pilihResitKilat() { var c = el('rsC'); c.classList.remove('kilat'); void c.offsetWidth; c.classList.add('kilat'); c.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
@@ -422,18 +459,204 @@
   });
   window.addEventListener('resize', function () { takuk(); el('tip').className = 'tip'; });
 
-  // ---------- pasang app (PWA) ----------
+  // ---------- pasang app ikut peranti ----------
   var ev = null;
-  var dipasang = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-  var baruTolak = Date.now() - (+ls('bfx_tolak') || 0) < 3 * 864e5;
+  var baruTolak = Date.now() - (+ls('bfx_tolak') || 0) < 3 * 864e5; // popup keluar semula selepas 3 hari jika belum pasang
+  var APP_URL = 'https://danialhykal32-ctrl.github.io/app/';
+  function qMac() { return MAC ? '?mac=' + encodeURIComponent(MAC) + (IP ? '&ip=' + encodeURIComponent(IP) : '') : ''; }
+  function linkApp() { return APP_URL + qMac(); }
+  function intentChrome() { return 'intent://danialhykal32-ctrl.github.io/app/' + qMac() + '#Intent;scheme=https;package=com.android.chrome;end'; }
   function tolak(id) { el(id).className = 'sheet'; ls('bfx_tolak', String(Date.now())); }
-  function pasang() { el('sA').className = 'sheet'; if (ev) { ev.prompt(); ev.userChoice.then(function (r) { if (r.outcome !== 'accepted') ls('bfx_tolak', String(Date.now())); ev = null; }); } }
-  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); ev = e; if (!dipasang && !baruTolak) setTimeout(function () { el('sA').className = 'sheet on'; }, 2500); });
-  window.addEventListener('appinstalled', function () { el('sA').className = 'sheet'; toast('BlackFox App dipasang ✓'); });
-  var ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && 'ontouchend' in document);
-  var safari = ios && !/CriOS|FxiOS|EdgiOS|GSA|Instagram|FBAN|FBAV|Line\//.test(ua);
-  if (safari && !dipasang && !baruTolak) setTimeout(function () { el('sI').className = 'sheet on'; }, 3000);
+  function pasangSheet() {
+    teks(el('sAT'), 'Pasang BlackFox App?'); teks(el('sAP'), 'Buka terus dari skrin utama, penuh skrin, tanpa browser.');
+    el('sAx').hidden = true;
+    el('sAB').innerHTML = '<button data-act="aNanti">Nanti</button><button class="pri" data-act="aPasang">Pasang</button>';
+    el('sA').className = 'sheet on';
+  }
+  function pasang() {
+    el('sA').className = 'sheet';
+    if (!ev) { panduan(jenisPeranti()); return; }
+    ev.prompt();
+    ev.userChoice.then(function (r) { if (r.outcome !== 'accepted') ls('bfx_tolak', String(Date.now())); ev = null; });
+  }
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); ev = e; if (!dipasang && !baruTolak) setTimeout(pasangSheet, 2500); });
+  // Chrome kadang-kadang keluarkan appinstalled tetapi WebAPK gagal dipasang (cth. Honor): jangan kata "dipasang ✓"
+  window.addEventListener('appinstalled', function () {
+    teks(el('sAT'), 'Sedang dipasang…'); teks(el('sAP'), 'Semak Home Screen dalam 1 minit.');
+    el('sAx').hidden = false;
+    el('sAB').innerHTML = '<button class="pri" data-act="aOk">OK</button>';
+    el('sA').className = 'sheet on';
+  });
+
+  var K = function (t) { return '<span class="k">' + t + '</span>'; };
+  var PANDUAN = {
+    'ios-safari': { s: 'iPhone / iPad · Safari', v: 1, l: ['Tekan ' + K('&equiv;') + ' di bar alamat', 'Pilih <b>Share</b>', 'Tekan <b>View More</b>', 'Pilih <b>Add to Home Screen</b>', 'Tekan <b>Add</b>'] },
+    'ios-lain': { s: 'Chrome / Edge / Firefox di iPhone', l: ['Tekan <b>Share</b> ' + K('⬆️') + ' di bar alamat', 'Pilih <b>Add to Home Screen</b>', 'Tekan <b>Add</b>'], n: 'Boleh pasang terus dari browser ini (iOS 16.4 ke atas).' },
+    'ios-inapp': { t: 'Buka dalam Safari', s: 'Anda dalam browser dalam app (Telegram / WhatsApp / Instagram…). App tidak boleh dipasang dari sini.', l: ['Tekan ' + K('•••') + ' (atau ' + K('⬆️') + ') di penjuru skrin', 'Pilih <b>Open in Safari</b>', 'Dalam Safari, pasang app ke Home Screen'], n: 'Tiada pilihan itu? Tekan <b>Salin Link</b> dan tampal dalam Safari.', b: ['salin'] },
+    'android-inapp': { t: 'Buka dalam Chrome', s: 'Browser dalam app (Telegram / WhatsApp / Instagram…) tidak boleh pasang app.', l: ['Tekan <b>Buka dalam Chrome</b> di bawah', 'Jika tidak terbuka: tekan ' + K('⋮') + ' → <b>Open in Chrome</b> / <b>Open in browser</b>'], b: ['chrome', 'salin'] },
+    'android': { s: 'Android · Chrome', l: ['Tekan ' + K('⋮') + ' di penjuru kanan atas', 'Pilih <b>Add to Home screen</b> atau <b>Install app</b>', 'Pilih <b>Install</b> atau <b>Create shortcut</b> → <b>Add</b>'], n: 'Ikon tak keluar? Pastikan <b>Desktop site</b> TIDAK ditanda dalam menu ⋮. Honor / Huawei: Settings → Apps → Chrome → Permissions → benarkan <b>Home screen shortcuts</b>. Atau guna Microsoft Edge: ⋯ → <b>Add to phone</b>.' },
+    'samsung': { s: 'Samsung Internet', l: ['Tekan ' + K('&equiv;') + ' di bawah kanan', 'Pilih <b>Add page to</b>', 'Pilih <b>Home screen</b> → <b>Add</b>'] },
+    'firefox-android': { s: 'Firefox Android', l: ['Tekan ' + K('⋮'), 'Pilih <b>Install</b> atau <b>Add to Home screen</b>', 'Tekan <b>Add</b>'] },
+    'laptop': { s: 'Laptop · Chrome / Edge', l: ['Klik ikon <b>Pasang</b> ' + K('⊕') + ' di hujung kanan bar alamat', 'Klik <b>Install</b>'], n: 'Tiada ikon? Chrome: ⋮ → Cast, save and share → <b>Install page as app</b>. Edge: ⋯ → Apps → <b>Install this site as an app</b>.' },
+    'mac-safari': { s: 'Mac · Safari', l: ['Klik menu <b>File</b> di bar atas', 'Pilih <b>Add to Dock</b>', 'Klik <b>Add</b>'] },
+    'lain': { s: 'Browser anda', l: ['Buka menu browser', 'Pilih <b>Add to Home screen</b> / <b>Install app</b>', 'Tekan <b>Add</b>'], n: 'Untuk hasil terbaik guna Safari (iPhone) atau Chrome (Android).' },
+    'dipasang': { t: 'App sudah dipasang ✓', s: 'Anda sedang guna BlackFox App dari skrin utama.', l: [] }
+  };
+  function panduan(j) {
+    var g = PANDUAN[j] || PANDUAN.lain, v = el('pVid');
+    teks(el('mPT'), g.t || 'Pasang BlackFox App'); teks(el('mPS'), g.s || '');
+    el('mPL').innerHTML = g.l.map(function (x) { return '<li>' + x + '</li>'; }).join('');
+    el('mPN').hidden = !g.n; el('mPN').innerHTML = g.n || '';
+    var B = '';
+    (g.b || []).forEach(function (x) {
+      if (x === 'chrome') B += '<a class="pri" href="' + intentChrome().replace(/&/g, '&amp;') + '">Buka dalam Chrome</a>';
+      if (x === 'salin') B += '<button data-act="salinLink">Salin Link</button>';
+    });
+    el('mPB').innerHTML = B + '<button class="pri" data-act="pTutup">Dah faham</button>';
+    el('mPV').hidden = !g.v;
+    if (g.v && !v.getAttribute('src')) { v.muted = true; v.setAttribute('src', 'pasang-ios.mp4'); } // video dimuat hanya bila popup dibuka
+    el('mP').className = 'modal on';
+    if (g.v) { var pr = v.play(); if (pr && pr.catch) pr.catch(function () {}); }
+  }
+  function tutupPanduan() {
+    var v = el('pVid'); el('mP').className = 'modal'; ls('bfx_tolak', String(Date.now()));
+    if (v.getAttribute('src')) { v.pause(); v.removeAttribute('src'); v.load(); }
+  }
+  function autoPasang() {
+    var j = jenisPeranti();
+    if (j === 'dipasang' || baruTolak) return;
+    if (j === 'android-inapp') { // cuba buka Chrome SEKALI, kemudian tunjuk panduan
+      if (!ss('bfx_intent')) { ss('bfx_intent', '1'); location.href = intentChrome(); setTimeout(function () { if (!document.hidden) panduan(j); }, 1500); }
+      else panduan(j);
+      return;
+    }
+    if (j === 'ios-inapp') { // iOS 17+: cuba x-safari SEKALI; jika masih dalam app selepas 1.5s, tunjuk panduan
+      if (iosVer >= 17 && !ss('bfx_xsaf')) { ss('bfx_xsaf', '1'); location.href = 'x-safari-' + linkApp(); setTimeout(function () { if (!document.hidden) panduan(j); }, 1500); }
+      else panduan(j);
+      return;
+    }
+    if (j === 'ios-safari' || j === 'ios-lain' || j === 'samsung' || j === 'mac-safari') panduan(j);
+    // android / laptop Chrome: tunggu beforeinstallprompt. Tiada prompt = tiada popup (panduan manual di Profil).
+  }
+  // video belum ada / gagal dimuat: sorok kotak video, langkah teks kekal
+  el('pVid').addEventListener('error', function () { if (this.getAttribute('src')) el('mPV').hidden = true; });
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+
+  // ---------- waktu solat & cuaca (zon dalam phone SAHAJA, tiada GPS) ----------
+  var ZON = {
+    'Johor': [['JHR01', 'Pulau Aur dan Pulau Pemanggil'], ['JHR02', 'Johor Bahru, Kota Tinggi, Mersing, Kulai'], ['JHR03', 'Kluang, Pontian'], ['JHR04', 'Batu Pahat, Muar, Segamat, Gemas Johor, Tangkak']],
+    'Kedah': [['KDH01', 'Kota Setar, Kubang Pasu, Pokok Sena (Daerah Kecil)'], ['KDH02', 'Kuala Muda, Yan, Pendang'], ['KDH03', 'Padang Terap, Sik'], ['KDH04', 'Baling'], ['KDH05', 'Bandar Baharu, Kulim'], ['KDH06', 'Langkawi'], ['KDH07', 'Puncak Gunung Jerai']],
+    'Kelantan': [['KTN01', 'Bachok, Kota Bharu, Machang, Pasir Mas, Pasir Puteh, Tanah Merah, Tumpat, Kuala Krai, Mukim Chiku'], ['KTN02', 'Gua Musang (Daerah Galas Dan Bertam), Jeli, Jajahan Kecil Lojing']],
+    'Melaka': [['MLK01', 'Seluruh Negeri Melaka']],
+    'Negeri Sembilan': [['NGS01', 'Tampin, Jempol'], ['NGS02', 'Jelebu, Kuala Pilah, Rembau'], ['NGS03', 'Port Dickson, Seremban']],
+    'Pahang': [['PHG01', 'Pulau Tioman'], ['PHG02', 'Kuantan, Pekan, Muadzam Shah'], ['PHG03', 'Jerantut, Temerloh, Maran, Bera, Chenor, Jengka'], ['PHG04', 'Bentong, Lipis, Raub'], ['PHG05', 'Genting Sempah, Janda Baik, Bukit Tinggi'], ['PHG06', 'Cameron Highlands, Genting Higlands, Bukit Fraser'], ['PHG07', 'Zon Khas Daerah Rompin (Mukim Rompin, Mukim Endau, Mukim Pontian)']],
+    'Perlis': [['PLS01', 'Kangar, Padang Besar, Arau']],
+    'Pulau Pinang': [['PNG01', 'Seluruh Negeri Pulau Pinang']],
+    'Perak': [['PRK01', 'Tapah, Slim River, Tanjung Malim'], ['PRK02', 'Kuala Kangsar, Sg. Siput, Ipoh, Batu Gajah, Kampar'], ['PRK03', 'Lenggong, Pengkalan Hulu, Grik'], ['PRK04', 'Temengor, Belum'], ['PRK05', 'Kg Gajah, Teluk Intan, Bagan Datuk, Seri Iskandar, Beruas, Parit, Lumut, Sitiawan, Pulau Pangkor'], ['PRK06', 'Selama, Taiping, Bagan Serai, Parit Buntar'], ['PRK07', 'Bukit Larut']],
+    'Sabah': [['SBH01', 'Bahagian Sandakan (Timur), Bukit Garam, Semawang, Temanggong, Tambisan, Bandar Sandakan, Sukau'], ['SBH02', 'Beluran, Telupid, Pinangah, Terusan, Kuamut, Bahagian Sandakan (Barat)'], ['SBH03', 'Lahad Datu, Silabukan, Kunak, Sahabat, Semporna, Tungku, Bahagian Tawau (Timur)'], ['SBH04', 'Bandar Tawau, Balong, Merotai, Kalabakan, Bahagian Tawau (Barat)'], ['SBH05', 'Kudat, Kota Marudu, Pitas, Pulau Banggi, Bahagian Kudat'], ['SBH06', 'Gunung Kinabalu'], ['SBH07', 'Kota Kinabalu, Ranau, Kota Belud, Tuaran, Penampang, Papar, Putatan, Bahagian Pantai Barat'], ['SBH08', 'Pensiangan, Keningau, Tambunan, Nabawan, Bahagian Pendalaman (Atas)'], ['SBH09', 'Beaufort, Kuala Penyu, Sipitang, Tenom, Long Pasia, Membakut, Weston, Bahagian Pendalaman (Bawah)']],
+    'Selangor': [['SGR01', 'Gombak, Petaling, Sepang, Hulu Langat, Hulu Selangor, S.Alam'], ['SGR02', 'Kuala Selangor, Sabak Bernam'], ['SGR03', 'Klang, Kuala Langat']],
+    'Sarawak': [['SWK01', 'Limbang, Lawas, Sundar, Trusan'], ['SWK02', 'Miri, Niah, Bekenu, Sibuti, Marudi'], ['SWK03', 'Pandan, Belaga, Suai, Tatau, Sebauh, Bintulu'], ['SWK04', 'Sibu, Mukah, Dalat, Song, Igan, Oya, Balingian, Kanowit, Kapit'], ['SWK05', 'Sarikei, Matu, Julau, Rajang, Daro, Bintangor, Belawai'], ['SWK06', 'Lubok Antu, Sri Aman, Roban, Debak, Kabong, Lingga, Engkelili, Betong, Spaoh, Pusa, Saratok'], ['SWK07', 'Serian, Simunjan, Samarahan, Sebuyau, Meludam'], ['SWK08', 'Kuching, Bau, Lundu, Sematan'], ['SWK09', 'Zon Khas (Kampung Patarikan)']],
+    'Terengganu': [['TRG01', 'Kuala Terengganu, Marang, Kuala Nerus'], ['TRG02', 'Besut, Setiu'], ['TRG03', 'Hulu Terengganu'], ['TRG04', 'Dungun, Kemaman']],
+    'Wilayah Persekutuan': [['WLY01', 'Kuala Lumpur, Putrajaya'], ['WLY02', 'Labuan']]
+  };
+  var ZNAMA = {}, CS = null;
+  Object.keys(ZON).forEach(function (n) { ZON[n].forEach(function (z) { ZNAMA[z[0]] = [n, z[1]]; }); });
+  var ASRAMA = 'NGS01', LIMA = ['Subuh', 'Zohor', 'Asar', 'Maghrib', 'Isyak'];
+  var HIJRI = ['Muharram', 'Safar', 'Rabiulawal', 'Rabiulakhir', 'Jamadilawal', 'Jamadilakhir', 'Rejab', 'Syaaban', 'Ramadan', 'Syawal', 'Zulkaedah', 'Zulhijjah'];
+  function zonKini() { var z = ls('bfx_zon'); return ZNAMA[z] ? z : ASRAMA; }
+  function zonPendek(z) { var n = ZNAMA[z]; return /^Seluruh Negeri/.test(n[1]) ? n[0] : n[1].split(', ').slice(0, 2).join(', '); }
+  function dua(n) { return (n < 10 ? '0' : '') + n; }
+  function myt() { return new Date(Date.now() + 8 * 3600e3); }
+  function hariIni() { var d = myt(); return dua(d.getUTCDate()) + '/' + dua(d.getUTCMonth() + 1) + '/' + d.getUTCFullYear(); }
+  function minit(hm) { var m = String(hm || '').match(/(\d{1,2}):(\d{2})/); return m ? +m[1] * 60 + +m[2] : -1; }
+  function jam(t) { var d = new Date(t + 8 * 3600e3); return dua(d.getUTCHours()) + ':' + dua(d.getUTCMinutes()); }
+  function tempoh(m) { var j = Math.floor(m / 60), n = m % 60; return j ? j + 'j ' + n + 'm' : n + 'm'; }
+  function csSimpan(z, o) { ls('bfx_cs_' + z, JSON.stringify(o)); }
+  function csBaca(z) { try { return JSON.parse(ls('bfx_cs_' + z) || 'null'); } catch (e) { return null; } }
+  function muatCS(paksa) {
+    var z = zonKini(), lama = csBaca(z);
+    teks(el('zonN'), zonPendek(z));
+    CS = lama; paparCS();
+    var segar = lama && lama.c && Date.now() - lama.c.t < 15 * 60e3 && lama.s && lama.s.tarikh === hariIni();
+    if (segar && !paksa) return;
+    if (muatCS.j && Date.now() - muatCS.j < 8000) return; // elak panggilan berganda
+    muatCS.j = Date.now();
+    api({ a: 'cuaca', zon: z }, function (r) {
+      muatCS.j = 0;
+      if (z !== zonKini()) return;
+      var o = csBaca(z) || {}, now = Date.now();
+      if (r.ok && r.cuaca && r.cuaca.ok) { o.c = r.cuaca; o.c.t = now; }
+      if (r.ok && r.solat && r.solat.ok) { o.s = r.solat; o.s.t = now; }
+      o.gagal = !(r.ok && r.cuaca && r.cuaca.ok && r.solat && r.solat.ok);
+      csSimpan(z, o); CS = o; paparCS();
+    });
+  }
+  function paparCS() {
+    var o = CS || {}, s = o.s, c = o.c;
+    // waktu solat
+    var W = el('sWaktu'); W.textContent = '';
+    if (s && s.w) {
+      var now = myt(), kini = now.getUTCHours() * 60 + now.getUTCMinutes(), basi = s.tarikh !== hariIni();
+      var L = s.w.filter(function (x) { return LIMA.indexOf(x[0]) >= 0; }), nx = -1;
+      if (!basi) for (var i = 0; i < L.length; i++) if (minit(L[i][1]) > kini) { nx = i; break; }
+      L.forEach(function (x, i) {
+        var e = document.createElement('span'); e.className = basi ? '' : (i === nx ? 'kini' : (nx < 0 || i < nx ? 'lalu' : ''));
+        e.appendChild(document.createTextNode(x[0])); var b = document.createElement('b'); b.textContent = x[1]; e.appendChild(b); W.appendChild(e);
+      });
+      var N = el('sNext'); N.textContent = '';
+      if (basi) N.textContent = 'Mengemas kini waktu hari ini…';
+      else {
+        var nama = nx < 0 ? 'Subuh' : L[nx][0], baki = nx < 0 ? minit(s.esok) + 1440 - kini : minit(L[nx][1]) - kini;
+        var em = document.createElement('em'); em.textContent = nama; N.appendChild(em); N.appendChild(document.createTextNode(' dalam ' + tempoh(baki)));
+      }
+      var h = String(s.hijri || '').match(/(\d{4})-(\d{2})-(\d{2})/);
+      teks(el('sHijri'), h ? (+h[3]) + ' ' + HIJRI[+h[2] - 1] + ' ' + h[1] + 'H' : '');
+    } else { teks(el('sNext'), '-'); teks(el('sHijri'), ''); }
+    upd('sUpd', s, o.gagal);
+    // cuaca
+    if (c) {
+      el('cIk').innerHTML = IC['w_' + c.ikon] || IC.w_awan;
+      var su = el('cSuhu');
+      su.textContent = c.suhu !== undefined && c.suhu !== null ? c.suhu + '°' : c.min + '–' + c.max + '°';
+      var sm = document.createElement('small'); sm.textContent = 'C'; su.appendChild(sm);
+      teks(el('cDesc'), c.desc + (c.bila && !/tiada/i.test(c.desc) ? ' (' + String(c.bila).toLowerCase() + ')' : ''));
+      var p = [];
+      if (typeof c.hujan === 'number') p.push('Peluang hujan ' + c.hujan + '%');
+      if (c.min !== undefined && c.suhu !== undefined) p.push(c.min + '–' + c.max + '°C');
+      teks(el('cHujan'), p.join(' · '));
+      teks(el('cLok'), c.lokasi || '');
+    } else { el('cIk').innerHTML = ''; teks(el('cSuhu'), '-'); teks(el('cDesc'), '-'); teks(el('cHujan'), ''); teks(el('cLok'), ''); }
+    upd('cUpd', c, o.gagal);
+  }
+  function upd(id, d, gagal) {
+    var e = el(id);
+    if (!d) { e.className = 'upd bad'; e.textContent = muatCS.j ? 'Memuatkan…' : 'Data tidak tersedia'; return; }
+    e.className = 'upd' + (gagal ? ' bad' : '');
+    e.textContent = 'Dikemas kini ' + jam(d.t) + (gagal ? ' · data terakhir (tiada sambungan)' : '') + (d.sumber ? ' · ' + d.sumber : '');
+  }
+  function bukaZon() {
+    var z = zonKini(), N = el('zNeg');
+    if (!N.options.length) Object.keys(ZON).forEach(function (n) { var o = document.createElement('option'); o.value = n; o.textContent = n; N.appendChild(o); });
+    N.value = ZNAMA[z][0]; isiZon(z);
+    el('mZ').className = 'modal on';
+  }
+  function isiZon(pilih) {
+    var Z = el('zZon'); Z.textContent = '';
+    ZON[el('zNeg').value].forEach(function (x) { var o = document.createElement('option'); o.value = x[0]; o.textContent = x[0] + ' · ' + x[1]; Z.appendChild(o); });
+    if (pilih && ZNAMA[pilih] && ZNAMA[pilih][0] === el('zNeg').value) Z.value = pilih;
+  }
+  function simpanZon(z) {
+    if (z && z !== ASRAMA) ls('bfx_zon', z); else ls('bfx_zon', null);
+    el('mZ').className = 'modal'; toast('📍 ' + zonPendek(zonKini()));
+    muatCS(true);
+  }
+  el('zNeg').addEventListener('change', function () { isiZon(); });
+  setInterval(function () { if (CS) { if (CS.s && CS.s.tarikh !== hariIni()) muatCS(true); else paparCS(); } }, 30000); // kiraan masa setiap minit
+  setInterval(function () { if (AK && !document.hidden) muatCS(true); }, 15 * 60e3); // cuaca setiap 15 minit
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden || !AK) return;
+    var c = CS && CS.c; muatCS(!c || Date.now() - c.t > 2 * 60e3);
+  });
 
   // ---------- mula ----------
   (function () {
@@ -445,16 +668,30 @@
     if (/^192\.168\.88\.\d{1,3}$/.test(ip)) { IP = ip; ls('bfx_ip', IP); } else IP = /^192\.168\.88\.\d{1,3}$/.test(ls('bfx_ip') || '') ? ls('bfx_ip') : '';
     if (q.get('mac') || q.get('ip')) history.replaceState(null, '', location.pathname + (q.get('src') ? '?src=' + encodeURIComponent(q.get('src')) : ''));
     ikon(); binaPakej(); kalendar();
+    // Auto sambung WiFi: dibuka dari portal (ada mac) + sudah log masuk + pakej aktif -> SEKALI sahaja (tiada loop)
+    var dariPortal = !!(MAC && q.get('mac')) && q.get('src') !== 'status';
+    var autoWifi = function (a) {
+      if (!dariPortal || !a || !a.aktif) return;
+      var k = (ls('bfx_auto') || '').split('|');
+      if (k[0] === MAC && Date.now() - (+k[1] || 0) < 30 * 60e3) return;
+      ls('bfx_auto', MAC + '|' + Date.now()); dariPortal = false;
+      toast('Menyambung WiFi…'); teks(el('bSambung').querySelector('span'), 'Menyambung WiFi…');
+      setTimeout(function () { sambung(true); }, 1200);
+    };
     var t = ls('bfx_t');
     if (t) {
-      TOK = t; el('muat').className = 'muat on';
+      // Log masuk kekal: terus ke dashboard (data terakhir dalam phone), kemudian segarkan dari server
+      TOK = t;
+      var ak0 = null; try { ak0 = JSON.parse(ls('bfx_ak') || 'null'); } catch (e) {}
+      if (ak0) { setAk(ak0); tunjukDash(); } else el('muat').className = 'muat on';
       api({ a: 'akaun' }, function (r) {
         el('muat').className = 'muat';
-        if (r.ok) { setAk(r.akaun); tunjukDash(); return; }
-        if (r.keluar) { TOK = ''; ls('bfx_t', null); }
-        el('vAuth').className = 'view on'; if (r.msg && !r.keluar) toast(r.msg);
+        if (r.ok) { setAk(r.akaun); if (!ak0) tunjukDash(); autoWifi(r.akaun); return; }
+        if (r.keluar || !TOK) { el('vDash').className = 'view'; el('vAuth').className = 'view on'; return; }
+        if (!ak0) { el('vAuth').className = 'view on'; toast(r.msg || 'Tiada sambungan. Cuba lagi.'); }
       });
     } else { el('vAuth').className = 'view on'; api({ a: 'info' }, function () {}); }
+    setTimeout(autoPasang, 2500);
     setInterval(function () { api({ a: 'info' }, function () {}); }, 60000);
     setInterval(function () { if (TOK && !document.hidden) api({ a: 'akaun' }, function (r) { if (r.ok) setAk(r.akaun); }); }, 180000);
   })();

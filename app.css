@@ -484,8 +484,9 @@ button.ib{position:relative}button.ib:after{content:"";position:absolute;inset:-
   --card:rgba(30,27,75,.32);--card2:rgba(237,233,254,.06);--hi:#EDE9FE;--or:#A78BFA;--spring:cubic-bezier(.34,1.56,.64,1)}
 body.dash{background:#0F172A}
 body.dash .bg{display:none}
-#vDash{position:relative;height:100vh;height:100dvh;padding:14px 18px 16px;display:flex;flex-direction:column;gap:14px;overflow:hidden;
+#vDash{position:relative;height:100vh;height:100dvh;padding:14px 18px 16px;flex-direction:column;gap:14px;overflow:hidden;
   background:radial-gradient(120% 90% at 85% -10%,rgba(124,58,237,.35),transparent 55%),radial-gradient(90% 70% at -10% 110%,rgba(34,211,238,.18),transparent 60%),#0F172A}
+#vDash.on{display:flex}
 /* sfera neon terapung (ganti bilik kayu dalam video) */
 .orbs{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}
 .orbs i{position:absolute;border-radius:50%;filter:blur(2px);opacity:.9;animation:apung 14s ease-in-out infinite}

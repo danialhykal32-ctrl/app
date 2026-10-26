@@ -1,5 +1,5 @@
 // BlackFox WiFi: service worker. Simpan "kulit" app sahaja; data sentiasa dari API Google (tidak disimpan).
-const V = 'bfx-v4';
+const V = 'bfx-v5';
 const SHELL = ['./', './index.html', './app.css', './app.js', './bg.svg', './manifest.webmanifest', './bfc180.png', './bfc512.png', './bfc512m.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener('activate', e => {

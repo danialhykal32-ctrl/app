@@ -740,3 +740,7 @@ button,.lg,.btn,.pill,.ghost,.gb,.ri,.tile,.ask,a.btn,a.lg,[data-act],[data-pg],
 .muat b{color:#EDE9FE}
 /* Tanya AI: barisan cadangan soalan tidak lagi melebarkan halaman di phone */
 .sv>*,.chat{min-width:0}.qk{max-width:100%}
+/* notis versi baru */
+.upd{position:fixed;z-index:95;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;align-items:center;gap:12px;width:max-content;max-width:calc(100% - 24px);padding:8px 8px 8px 16px;border-radius:999px;
+background:rgba(30,18,54,.94);border:1px solid rgba(167,139,250,.45);color:#EDE9FE;font-size:13px;font-weight:600;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);box-shadow:0 18px 40px -16px rgba(2,6,23,.95);animation:pudar .25s ease}
+.upd span{min-width:0}.upd .lg{flex:none;min-height:40px}

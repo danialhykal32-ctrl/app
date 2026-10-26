@@ -516,6 +516,7 @@
     if (!act) return;
     e.preventDefault();
     switch (act) {
+      case 'kemaskini': kemaskini(); break;
       case 'tab0': tab(0); break;
       case 'tab1': tab(1); break;
       case 'keluar': keluar(); break;
@@ -643,7 +644,23 @@
   }
   // video belum ada / gagal dimuat: sorok kotak video, langkah teks kekal
   el('pVid').addEventListener('error', function () { if (this.getAttribute('src')) el('mPV').hidden = true; });
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+  // ---------- versi baru: notis "Kemas kini" (SW baru menunggu, tekan sekali -> skipWaiting + muat semula) ----------
+  var SWW = null, mahuMuat = false;
+  function kemaskini() {
+    el('upd').hidden = true; mahuMuat = true;
+    if (SWW) SWW.postMessage({ t: 'skip' });
+    setTimeout(function () { location.reload(); }, 3000); // sandaran jika controllerchange tidak berlaku
+  }
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('controllerchange', function () { if (mahuMuat) { mahuMuat = false; location.reload(); } });
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(function (reg) {
+      function sedia(w) { if (!w || !navigator.serviceWorker.controller) return; SWW = w; el('upd').hidden = false; } // tiada notis pada pasangan pertama
+      if (reg.waiting) sedia(reg.waiting);
+      reg.addEventListener('updatefound', function () { var w = reg.installing; if (w) w.addEventListener('statechange', function () { if (w.state === 'installed') sedia(w); }); });
+      document.addEventListener('visibilitychange', function () { if (!document.hidden) reg.update().catch(function () {}); }); // semak bila app dibuka semula
+      setInterval(function () { reg.update().catch(function () {}); }, 30 * 60e3);
+    }).catch(function () {});
+  }
 
   // ---------- waktu solat & cuaca (zon dalam phone SAHAJA, tiada GPS) ----------
   var ZON = {

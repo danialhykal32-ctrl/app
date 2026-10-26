@@ -3,9 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src https://script.google.com https://*.googleusercontent.com; connect-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'">
 <meta name="referrer" content="no-referrer">
-<meta name="theme-color" content="#0a0a0a">
+<meta name="theme-color" content="#050506">
+<meta name="color-scheme" content="dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,44 +15,296 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="bfc180.png">
 <link rel="icon" href="bfc180.png">
-<style>
-:root{--bg:#0a0a0a;--fg:#f2f2f2;--mut:#9a9a9a;--ac:#ff6a00;--line:rgba(255,255,255,.14);--glass:rgba(28,28,28,.82)}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overflow:hidden}
-#f{position:fixed;inset:0;width:100%;height:100%;border:0;background:var(--bg)}
-#load{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:var(--bg);transition:opacity .4s}
-#load img{width:84px;height:84px;border-radius:20px;animation:p 1.6s ease-in-out infinite}
-#load b{letter-spacing:.35em;font-size:13px}#load b i{color:var(--ac);font-style:normal}
-#load small{color:var(--mut);font-size:12px}
-@keyframes p{50%{transform:scale(.94);opacity:.7}}
-#off{display:none;position:fixed;inset:0;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:24px;text-align:center;background:var(--bg)}
-#off button{margin-top:6px}
-.sheet{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:9;background:var(--glass);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--line);border-radius:22px;padding:18px;display:none;animation:u .35s ease}
-.sheet.on{display:block}
-@keyframes u{from{transform:translateY(30px);opacity:0}}
-.row{display:flex;gap:12px;align-items:center}
-.row img{width:48px;height:48px;border-radius:12px}
-.sheet h3{font-size:16px}.sheet p{color:var(--mut);font-size:13px;margin-top:3px;line-height:1.45}
-.sheet ol{margin:12px 0 0 18px;font-size:14px;line-height:1.8}
-.btns{display:flex;gap:10px;margin-top:14px}
-button{flex:1;padding:12px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--fg);font-size:14px;font-weight:600}
-button.pri{background:var(--fg);color:#000;border-color:var(--fg)}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-</style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="app.css">
 </head>
 <body>
-<iframe id="f" title="BlackFox WiFi" allow="clipboard-write" referrerpolicy="no-referrer"></iframe>
-<div id="load"><img src="bfc180.png" alt=""><b>BLACK<i>FOX</i></b><small>Memuatkan…</small></div>
-<div id="off"><img src="bfc180.png" alt="" width="64" height="64" style="border-radius:16px"><h3>Tiada sambungan internet</h3><p style="color:var(--mut);font-size:13px">Hidupkan data telefon, atau sambung WiFi asrama & log masuk di portal.</p><button class="pri" id="cuba">Cuba lagi</button></div>
+<div class="bg"></div>
+<div class="toast" id="toast" role="status"></div>
+<div class="tip" id="tip"></div>
+<div class="muat" id="muat"><i data-ic="fox"></i><b>BLACK<em>FOX</em></b></div>
 
+<!-- ===================== LOG MASUK / DAFTAR (V2) ===================== -->
+<section class="view" id="vAuth">
+  <header class="top">
+    <i class="fox" data-ic="fox"></i><h1>Black<span>Fox</span></h1>
+    <div class="line" data-line><i></i><span>Online</span></div>
+  </header>
+  <div class="alert" data-alert></div>
+  <div class="authwrap">
+    <div class="auth gl" id="auth">
+      <div class="sh"></div>
+      <svg class="dv" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><line x1="46" y1="0" x2="52" y2="100" stroke="rgba(255,255,255,.4)" stroke-width="1" vector-effect="non-scaling-stroke"/></svg>
+      <div class="col cl">
+        <div class="sa sa1"><h3>Welcome<br>Back!</h3><p>Belum ada akaun? Daftar sekali sahaja dengan No. Kad Matrik.</p><button class="ghost" data-act="tab0">Daftar &rarr;</button></div>
+        <form class="pane p2" data-form="daftar" autocomplete="on">
+          <h2>Cipta Akaun</h2>
+          <label class="fld"><i data-ic="user"></i><input class="in" id="dn" placeholder="Nama Penuh" autocomplete="name"></label>
+          <label class="fld"><i data-ic="card"></i><input class="in" id="dm" placeholder="No. Kad Matrik" autocapitalize="characters"></label>
+          <label class="fld"><i data-ic="lock"></i><input class="in" id="dp" type="password" inputmode="numeric" maxlength="9" placeholder="PIN 9 digit" data-digit autocomplete="new-password"></label>
+          <button class="btn" type="submit">Cipta Akaun</button>
+          <div class="msg" id="dmsg"></div>
+          <p class="note">Sudah ada akaun? <a href="#" data-act="tab1">Log masuk</a></p>
+        </form>
+      </div>
+      <div class="col cr">
+        <form class="pane p1" data-form="masuk" autocomplete="on">
+          <h2>Log Masuk</h2>
+          <label class="fld"><i data-ic="card"></i><input class="in" id="lm" placeholder="No. Kad Matrik" autocapitalize="characters" autocomplete="username"></label>
+          <label class="fld"><i data-ic="lock"></i><input class="in" id="lp" type="password" inputmode="numeric" placeholder="PIN 9 digit" autocomplete="current-password"></label>
+          <button class="btn" type="submit">Log Masuk</button>
+          <div class="msg" id="lmsg"></div>
+          <p class="note">Lupa PIN? <a href="#" data-act="aiLupa">Tanya AI</a></p>
+        </form>
+        <div class="sa sa2"><h3>Hello,<br>Friend!</h3><p>Isi butiran anda dan mula guna WiFi asrama bersama kami.</p><button class="ghost" data-act="tab1">Log Masuk &rarr;</button></div>
+      </div>
+      <div class="frost"></div>
+    </div>
+  </div>
+  <p class="ft">&copy; BlackFoxCyber &middot; Secure Dorm Network</p>
+</section>
+
+<!-- ===================== DASHBOARD (V18) ===================== -->
+<section class="view" id="vDash">
+  <div class="shell">
+    <nav class="rail" id="rail" aria-label="Menu">
+      <div class="rlogo"><i data-ic="fox"></i></div>
+      <button class="ri on" data-pg="utama" data-tip="Utama" aria-label="Utama"><i data-ic="home"></i></button>
+      <button class="ri" data-pg="pakej" data-tip="Pakej" aria-label="Pakej"><i data-ic="bag"></i></button>
+      <button class="ri" data-pg="pin" data-tip="Tukar PIN" aria-label="Tukar PIN"><i data-ic="key"></i></button>
+      <button class="ri" data-pg="tg" data-tip="Telegram" aria-label="Telegram"><i data-ic="send"></i></button>
+      <button class="ri" data-pg="ai" data-tip="Tanya AI" aria-label="Tanya AI"><i data-ic="spark"></i></button>
+      <button class="ri" data-pg="profil" data-tip="Profil" aria-label="Profil"><i data-ic="user"></i></button>
+      <button class="ri out" data-act="keluar" data-tip="Log Keluar" aria-label="Log Keluar"><i data-ic="logout"></i></button>
+      <span class="notch" id="notch"></span>
+    </nav>
+
+    <main class="main" id="main">
+      <div class="alert" data-alert></div>
+
+      <!-- UTAMA -->
+      <div class="page" id="pg-utama">
+        <div class="bento">
+          <div class="kiri">
+            <div class="card banner a">
+              <div class="btx">
+                <h2 class="wr" id="salam">Assalamualaikum</h2>
+                <div class="bmid"><p id="bsub">WiFi FOX ULTRA 5G sedia digunakan.</p>
+                <div class="brow">
+                  <button class="pill" data-act="sambung" id="bSambung"><i data-ic="wifi"></i><span>Sambung WiFi</span></button>
+                  <button class="pill gh" data-act="percuma" id="bFree" hidden><i data-ic="gift"></i><span>Ambil Percuma 5GB</span></button>
+                </div></div>
+              </div>
+              <div class="art" data-art="1"></div>
+            </div>
+            <div class="row2">
+              <div class="card a c-pelan">
+                <div class="ch"><h3>Pelan Anda</h3><button class="ib" data-pg="pakej" aria-label="Pakej"><i data-ic="plusc"></i></button></div>
+                <div class="trio">
+                  <div><span class="av"><b id="tKuota">-</b></span><small>Kuota<br>(GB)</small></div>
+                  <div><span class="av"><b id="tHari">-</b></span><small>Hari<br>berbaki</small></div>
+                  <div><span class="av"><b id="tPer">-</b></span><small>Peranti<br>serentak</small></div>
+                </div>
+                <div class="pl"><b id="xp">-</b><span id="xt">-</span></div>
+              </div>
+              <div class="card a c-data">
+                <div class="ch"><span class="lb">Baki Kuota</span><button class="ib" data-pg="pakej" aria-label="Tambah kuota"><i data-ic="arrowr"></i></button></div>
+                <div class="big" id="qb">-</div>
+                <div class="seg"><span><small>Guna</small><i id="sg1"></i></span><span><small>Baki</small><i id="sg2"></i></span></div>
+                <div class="segp"><span><i class="d"></i><em id="pg1">-</em></span><span><em id="pg2">-</em></span></div>
+              </div>
+              <div class="card a c-talian">
+                <span class="lb">Talian</span>
+                <div class="vb"><span class="chip" id="tChip">Online</span><i id="tBar"></i></div>
+                <small id="tSejak">Asrama</small>
+              </div>
+            </div>
+            <div class="row3">
+              <div class="card a c-stat">
+                <div class="ch"><h3>Statistik</h3><div class="tog" role="tablist"><button class="on" data-st="kuota">Kuota</button><button data-st="masa">Masa</button></div></div>
+                <div class="nums"><b id="st1">-</b><b id="st2">-</b><small id="stl">GB guna · GB baki</small></div>
+                <div class="subt">
+                  <div><i data-ic="device"></i><b id="st3">-</b><small>Peranti</small></div>
+                  <div><i data-ic="clock"></i><b id="st4">-</b><small>Hari berbaki</small></div>
+                </div>
+              </div>
+              <div class="kol">
+                <button class="pillcard a" data-pg="ai">
+                  <span class="pin"><span class="pdot"><i data-ic="spark"></i></span><span class="ptx"><b>Tanya BlackFox AI</b><small>Kuota, PIN, bayaran, sambungan</small></span><span class="pgo"><i data-ic="arrowr"></i></span></span>
+                </button>
+                <div class="card a c-promo">
+                  <div class="art tall" data-art="2"></div>
+                  <div class="ptxt">
+                    <h3 id="prT">Tambah Kuota Bila Perlu</h3>
+                    <p id="prP">Add-on dari RM10. Aktif automatik selepas bayar.</p>
+                    <button class="pill sm gh" id="prB" data-pg="pakej"><i data-ic="bag"></i><span>Lihat Pakej</span></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <aside class="kanan">
+            <div class="a cal">
+              <div class="calh"><h2 id="bulan">-</h2><div><button class="ib" data-act="mgL" aria-label="Minggu lepas"><i data-ic="chl"></i></button><button class="ib" data-act="mgR" aria-label="Minggu depan"><i data-ic="chr"></i></button></div></div>
+              <div class="week" id="week"></div>
+            </div>
+            <div class="a">
+              <div class="ch"><h3>Akses Pantas</h3><button class="ib" data-pg="profil" aria-label="Profil"><i data-ic="plusc"></i></button></div>
+              <div class="media">
+                <button class="mc" data-pg="tg"><span class="mt" data-art="3"><i data-ic="send"></i><em class="tag" id="mTg">Telegram</em></span><b>Sambung Telegram untuk amaran kuota</b><small id="mTgS">Notis &middot; PIN &middot; AI</small></button>
+                <button class="mc" data-pg="pakej" data-act="resitPg"><span class="mt" data-art="4"><i data-ic="receipt"></i><em class="tag">Resit</em></span><b>Sudah bayar? Hantar resit untuk semakan</b><small>Disahkan dengan ToyyibPay</small></button>
+                <button class="mc" data-pg="pin"><span class="mt" data-art="5"><i data-ic="key"></i><em class="tag">PIN</em></span><b>Tukar PIN 9 digit anda</b><small>Keselamatan akaun</small></button>
+              </div>
+            </div>
+            <div class="a nf">
+              <div class="ch"><h3>Notifikasi</h3><span class="bell"><i data-ic="bell"></i></span></div>
+              <div class="tabs" id="nTabs"><button class="on" data-nt="semua">Semua</button><button data-nt="notis">Notis</button><button data-nt="akaun">Akaun</button></div>
+              <div class="nlist" id="notif"></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <!-- PAKEJ -->
+      <div class="page" id="pg-pakej">
+        <div class="ph">
+          <div><h1 class="wr">Pakej</h1><p>Pelan bulanan, pas pantas dan add-on. Bayar FPX &amp; DuitNow QR, internet aktif automatik.</p></div>
+          <div class="pha"><div class="tabs flt" id="fTabs"><button class="on" data-f="semua">Semua</button><button data-f="bulanan">Bulanan</button><button data-f="pantas">Pantas</button><button data-f="addon">Add-on</button></div><button class="pill" data-act="resit"><i data-ic="receipt"></i><span>Hantar Resit</span></button></div>
+        </div>
+        <div class="sv">
+          <div>
+            <div class="card a" id="jualTutup" hidden><h3>Jualan Belum Dibuka</h3><p class="hint">Pembelian pakej akan dibuka tidak lama lagi.</p></div>
+            <div class="grid" id="grid"></div>
+          </div>
+          <aside class="card a coll">
+            <div class="ch"><h3>Pakej Semasa</h3><button class="ib" data-pg="utama" aria-label="Utama"><i data-ic="plusc"></i></button></div>
+            <div class="crow"><span class="ci k"><i data-ic="chart"></i></span><div><b>Kuota digunakan</b><small id="cr1">-</small><span class="pb"><i id="cb1"></i></span></div></div>
+            <div class="crow"><span class="ci"><i data-ic="clock"></i></span><div><b>Tempoh berlalu</b><small id="cr2">-</small><span class="pb"><i id="cb2"></i></span></div></div>
+            <div class="crow"><span class="ci"><i data-ic="device"></i></span><div><b>Peranti</b><small id="cr3">-</small><span class="pb"><i id="cb3"></i></span></div></div>
+            <div class="crow"><span class="ci"><i data-ic="bag"></i></span><div><b id="cr4b">Pelan</b><small id="cr4">-</small></div></div>
+            <div class="cbig"><b id="cHari">-</b><small>hari lagi sebelum pakej tamat</small></div>
+            <div class="rs" id="rsC">
+              <b>Sudah bayar tapi belum aktif?</b>
+              <small>Hantar screenshot resit ToyyibPay. AI baca resit dan sahkan terus dengan ToyyibPay. Gambar tidak disimpan.</small>
+              <input type="file" id="rsF" accept="image/*" hidden>
+              <button class="btn" data-act="resit" id="rsB">Hantar Resit</button>
+              <div class="msg" id="rsM"></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <!-- TUKAR PIN -->
+      <div class="page" id="pg-pin">
+        <div class="ph"><div><h1 class="wr">Tukar PIN</h1><p>PIN digunakan untuk log masuk WiFi dan app. Mesti tepat 9 digit nombor.</p></div></div>
+        <div class="sv">
+          <form class="card a pform" data-form="pin">
+            <div class="ch"><h3>PIN Baru</h3><span class="ib"><i data-ic="key"></i></span></div>
+            <label class="fld"><i data-ic="lock"></i><input class="in" id="np" type="password" inputmode="numeric" maxlength="9" placeholder="PIN baru (9 digit)" data-digit autocomplete="new-password"></label>
+            <label class="fld"><i data-ic="lock"></i><input class="in" id="np2" type="password" inputmode="numeric" maxlength="9" placeholder="Taip semula PIN baru" data-digit autocomplete="new-password"></label>
+            <button class="btn" type="submit">Simpan PIN</button>
+            <div class="msg" id="pmsg"></div>
+          </form>
+          <aside class="card a coll">
+            <div class="ch"><h3>Tips Keselamatan</h3></div>
+            <div class="crow"><span class="ci k"><i data-ic="lock"></i></span><div><b>Jangan kongsi PIN</b><small>Akaun dikongsi boleh disekat.</small></div></div>
+            <div class="crow"><span class="ci"><i data-ic="device"></i></span><div><b>Peranti baru</b><small>Log masuk semula dengan PIN baru.</small></div></div>
+            <div class="crow"><span class="ci"><i data-ic="spark"></i></span><div><b>Lupa PIN?</b><small>Tanya BlackFox AI dari app atau Telegram.</small></div></div>
+          </aside>
+        </div>
+      </div>
+
+      <!-- TELEGRAM -->
+      <div class="page" id="pg-tg">
+        <div class="ph"><div><h1 class="wr">Telegram</h1><p>Sambung @blackfoxcyber_alert_bot untuk amaran kuota, notis gangguan dan butiran log masuk.</p></div></div>
+        <div class="sv">
+          <div class="card a tgc">
+            <div class="ch"><h3 id="tgH">Sambung Telegram</h3><span class="chip" id="tgSt">Belum</span></div>
+            <p class="hint" id="tgS">Tekan butang di bawah. Telegram akan terbuka terus ke bot. Tekan <b>START</b> dan akaun anda disambung automatik.</p>
+            <a class="btn" id="tgL" href="https://t.me/blackfoxcyber_alert_bot" target="_blank" rel="noopener"><i data-ic="send"></i>Buka Telegram</a>
+            <p class="hint atas">Jika Telegram tidak terbuka, cari <b>@blackfoxcyber_alert_bot</b> dan hantar kod ini:</p>
+            <button class="code" id="tgK" data-act="salinKod">...</button>
+          </div>
+          <aside class="card a coll">
+            <div class="ch"><h3>Manfaat</h3></div>
+            <div class="crow"><span class="ci k"><i data-ic="bell"></i></span><div><b>Amaran kuota</b><small>Sebelum kuota habis &amp; pakej tamat.</small></div></div>
+            <div class="crow"><span class="ci"><i data-ic="wifi"></i></span><div><b>Notis gangguan</b><small>Terus bila talian terganggu.</small></div></div>
+            <div class="crow"><span class="ci"><i data-ic="key"></i></span><div><b>Butiran log masuk</b><small>PIN baru dihantar secara peribadi.</small></div></div>
+            <div class="crow"><span class="ci"><i data-ic="receipt"></i></span><div><b>Hantar resit</b><small>Hantar gambar resit terus ke bot.</small></div></div>
+          </aside>
+        </div>
+      </div>
+
+      <!-- TANYA AI -->
+      <div class="page" id="pg-ai">
+        <div class="ph"><div><h1 class="wr">Tanya AI</h1><p>BlackFox AI sedia membantu 24 jam: kuota, PIN, sambungan dan bayaran.</p></div></div>
+        <div class="sv">
+          <div class="card a chat">
+            <div class="log" id="log"></div>
+            <div class="qk" id="qk"><button>Kenapa internet saya lambat?</button><button>Saya lupa PIN</button><button>Macam mana nak tambah kuota?</button><button>Kenapa asyik diminta log masuk?</button><button>Apa manfaat sambung Telegram?</button></div>
+            <form class="cin" data-form="chat"><input id="cq" placeholder="Tanya apa sahaja..." autocomplete="off"><button class="send" type="submit" aria-label="Hantar"><i data-ic="arrowu"></i></button></form>
+          </div>
+          <aside class="card a coll">
+            <div class="ch"><h3>Boleh bantu</h3></div>
+            <div class="crow"><span class="ci k"><i data-ic="key"></i></span><div><b>Reset PIN</b><small>Selepas log masuk app.</small></div></div>
+            <div class="crow"><span class="ci"><i data-ic="wifi"></i></span><div><b>Masalah sambungan</b><small>Langkah demi langkah.</small></div></div>
+            <div class="crow"><span class="ci"><i data-ic="bag"></i></span><div><b>Pilih pakej</b><small>Ikut corak guna anda.</small></div></div>
+            <div class="crow"><span class="ci"><i data-ic="user"></i></span><div><b>Panggil admin</b><small>Jika AI tidak dapat selesaikan.</small></div></div>
+          </aside>
+        </div>
+      </div>
+
+      <!-- PROFIL -->
+      <div class="page" id="pg-profil">
+        <div class="card a pfh">
+          <div class="pban" data-art="6"></div>
+          <div class="pfr">
+            <span class="pav" id="pav">B</span>
+            <div class="pfn"><h2 id="pnama">-</h2><p><span id="pm">-</span> &middot; <span id="ppl">-</span></p><small><i data-ic="send"></i><span id="ptg">-</span><i data-ic="device"></i><span id="pper">-</span></small></div>
+            <div class="pfa"><span class="chip ok" id="pst"><i class="d"></i>Aktif</span><button class="pill" data-pg="pin"><i data-ic="key"></i><span>Tukar PIN</span></button></div>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="card a sc"><small><i data-ic="chart"></i>Kuota pakej</small><b data-n id="s1">-</b><em>GB untuk kitaran ini</em></div>
+          <div class="card a sc"><small><i data-ic="wifi"></i>Telah guna</small><b data-n id="s2">-</b><em>GB setakat ini</em></div>
+          <div class="card a sc"><small><i data-ic="clock"></i>Hari berbaki</small><b data-n id="s3">-</b><em id="s3e">sebelum tamat</em></div>
+          <div class="card a sc"><small><i data-ic="receipt"></i>Pembelian</small><b data-n id="s4">-</b><em id="s4e">jumlah RM0</em></div>
+        </div>
+        <div class="pgrid">
+          <div class="card a">
+            <div class="ch"><h3>Tentang Akaun</h3></div>
+            <p class="hint" id="pAbout">-</p>
+            <div class="chips" id="pChips"></div>
+          </div>
+          <div class="card a">
+            <div class="ch"><h3>Sejarah Pembelian</h3><b class="tot" id="pTot">RM0</b></div>
+            <div class="bars" id="pBars"></div>
+          </div>
+          <div class="card a">
+            <div class="ch"><h3>Aktiviti Terkini</h3></div>
+            <div class="nlist" id="pAkt"></div>
+          </div>
+          <div class="card a">
+            <div class="ch"><h3>Sokongan</h3><button class="ib" data-pg="ai" aria-label="Tanya AI"><i data-ic="plusc"></i></button></div>
+            <div class="crow"><span class="ci k"><i data-ic="spark"></i></span><div><b>BlackFox AI</b><small>Jawapan segera 24 jam</small></div></div>
+            <div class="crow"><span class="ci"><i data-ic="send"></i></span><div><b>Telegram</b><small id="pTg2">-</small></div></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- Pasang app -->
 <div class="sheet" id="sA">
   <div class="row"><img src="bfc180.png" alt=""><div><h3>Pasang BlackFox App?</h3><p>Buka terus dari skrin utama, penuh skrin, tanpa browser.</p></div></div>
-  <div class="btns"><button id="aNanti">Nanti</button><button class="pri" id="aPasang">Pasang</button></div>
+  <div class="btns"><button data-act="aNanti">Nanti</button><button class="pri" data-act="aPasang">Pasang</button></div>
 </div>
 <div class="sheet" id="sI">
-  <div class="row"><img src="bfc180.png" alt=""><div><h3>Pasang BlackFox App</h3><p>iPhone: pasang dalam 3 langkah (Safari sahaja).</p></div></div>
-  <ol><li>Tekan butang <b>Share</b> ⬆️ di bawah</li><li>Pilih <b>Add to Home Screen</b></li><li>Tekan <b>Add</b> ✅</li></ol>
-  <div class="btns"><button class="pri" id="iOk">Faham</button></div>
+  <div class="row"><img src="bfc180.png" alt=""><div><h3>Pasang BlackFox App</h3><p>iPhone: pasang dalam beberapa langkah (Safari).</p></div></div>
+  <ol><li>Tekan <b>&bull;&bull;&bull;</b> atau <b>&equiv;</b> di bar alamat</li><li>Pilih <b>Share</b></li><li>Pilih <b>Add to Home Screen</b></li><li>Tekan <b>Add</b></li></ol>
+  <div class="btns"><button class="pri" data-act="iOk">Faham</button></div>
 </div>
 <script src="app.js"></script>
 </body>

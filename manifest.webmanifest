@@ -6,12 +6,28 @@
   "start_url": "./?src=app",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a",
+  "background_color": "#050506",
+  "theme_color": "#050506",
   "icons": [
-    {"src": "bfc180.png", "sizes": "180x180", "type": "image/png"},
-    {"src": "bfc512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
-    {"src": "bfc512m.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+    {
+      "src": "bfc180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "bfc512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "bfc512m.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": [
+    "utilities"
   ]
 }

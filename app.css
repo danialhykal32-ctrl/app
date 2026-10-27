@@ -872,17 +872,6 @@ i[data-ic] svg{stroke-width:1.5}
 .mkb{animation:apung 4s ease-in-out infinite}
 #vAuth .ft{margin-top:14px}
 
-/* ---------- orb AI (selepas log masuk; boleh disorok) ---------- */
-.orb{position:fixed;z-index:40;right:calc(14px + env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));width:56px;height:56px}
-.orb[hidden]{display:none}
-.orbb{width:56px;height:56px;padding:3px;border-radius:50%;border:0;cursor:pointer;background:radial-gradient(circle at 30% 25%,#c4b5fd,#8b5cf6 45%,#ec4899 100%);
-  box-shadow:0 0 0 1px rgba(255,255,255,.25),0 0 24px -2px rgba(236,72,153,.7),0 10px 26px -10px rgba(99,102,241,.9);animation:denyut 3.2s ease-in-out infinite}
-.orbb img{display:block;width:100%;height:100%;border-radius:50%;background:#1c0e3a}
-.orbx{position:absolute;top:-6px;right:-6px;width:22px;height:22px;min-height:0;padding:0;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(18,10,36,.92);color:#ede9fe;font-size:14px;line-height:1;cursor:pointer}
-.orbx:after{content:"";position:absolute;inset:-11px}
-@keyframes denyut{50%{box-shadow:0 0 0 1px rgba(255,255,255,.3),0 0 34px 2px rgba(236,72,153,.75),0 10px 26px -10px rgba(99,102,241,.9)}}
-@media (max-width:719px){#vDash .stage{padding-bottom:calc(88px + env(safe-area-inset-bottom))}}
-
 /* ---------- halaman Tanya AI: baki & sejarah ---------- */
 .chb{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;margin:0 0 8px;min-height:20px}
 .chb .sp{flex:1}
@@ -906,3 +895,112 @@ i[data-ic] svg{stroke-width:1.5}
 @media (prefers-reduced-motion:reduce){
   *,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
 }
+
+/* ================================================================
+   V6 (27/10): UI ringkas & laju — phone (<768px) bar bawah neumorphism ikon sahaja,
+   tablet/laptop sidebar 5 item; blur hanya pada bar & panel; peralihan 180ms opacity/transform
+   ================================================================ */
+/* prestasi: kad tanpa backdrop-filter (punca utama lambat di phone) */
+#vDash .card,#vDash .stage,.stage.gls{-webkit-backdrop-filter:none;backdrop-filter:none}
+#vDash .card{background:linear-gradient(165deg,rgba(255,255,255,.07),rgba(255,255,255,.035));box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 10px 26px -18px rgba(4,1,12,.9)}
+#vDash .stage{background:none;border:0;box-shadow:none}
+/* peralihan halaman ringkas */
+#vDash .page.on{animation:pgMasuk .18s ease-out both}
+@keyframes pgMasuk{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+#vDash .page.masuk .a,#vDash .page.masuk .ph,#vDash .page .a{animation:none}
+.wr .w{animation:none}
+/* bar atas: ikon maskot AI */
+#vDash .topbar{justify-content:space-between}
+#vDash .tr{margin-left:auto}
+.aib{position:relative;width:44px;height:44px;flex:none;padding:2px;border-radius:50%;border:0;cursor:pointer;background:linear-gradient(135deg,#a78bfa,#6366f1,#ec4899);box-shadow:0 4px 14px -6px rgba(236,72,153,.7)}
+.aib img{display:block;width:100%;height:100%;border-radius:50%;background:#1c0e3a}
+.aib.on{box-shadow:0 0 0 3px rgba(196,181,253,.35),0 4px 14px -6px rgba(236,72,153,.7)}
+.aisalam{position:fixed;z-index:60;max-width:min(260px,calc(100vw - 24px));padding:10px 14px;border-radius:16px 4px 16px 16px;border:1px solid rgba(196,181,253,.35);background:rgba(36,20,70,.97);color:#f5f3ff;font:600 13px/1.4 var(--fi);text-align:left;cursor:pointer;
+  box-shadow:0 14px 34px -14px rgba(0,0,0,.9);opacity:0;transform:translateY(-4px) scale(.96);transform-origin:top right;transition:opacity .2s ease,transform .2s ease}
+.aisalam.on{opacity:1;transform:none}
+.aisalam[hidden]{display:none}
+/* Utama */
+.ugrid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px;margin-bottom:16px}
+.c-baki .big{margin:4px 0 12px}
+.c-baki .meter{margin:0 0 12px}
+.c-baki .dl{margin-bottom:16px}
+.c-baki .lg.full+.lg.full{margin-top:8px}
+.c-talian{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:4px 12px;align-content:center}
+.c-talian .tli{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(139,92,246,.18);color:#c4b5fd}
+.c-talian .tli i{width:20px;height:20px}
+.c-talian small{display:block;font-size:11.5px;color:var(--mu)}.c-talian b{font-size:17px}
+.c-talian .tls{grid-column:1/-1;display:none}
+.c-talian.down .tli{background:rgba(239,68,68,.18);color:#fca5a5}
+/* Pakej */
+#pg-pakej .tabs{margin:0 0 16px;max-width:520px}
+#pg-pakej .rs{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+#pg-pakej .rs small{color:var(--mu);font-size:12.5px;line-height:1.5}
+#pg-pakej .rs .btn{display:flex;align-items:center;justify-content:center;gap:8px}
+#pg-pakej .rs .btn i{width:18px;height:18px}
+/* Uji laju */
+#pg-laju .lj{max-width:560px}
+.ljcf a{color:#c4b5fd}
+/* Profil */
+#pg-profil .pfh{margin-bottom:16px}
+#pg-profil .pfr{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+#pg-profil .pfn{flex:1;min-width:0}
+#pg-profil .pfh .hint{margin-top:12px}
+#pg-profil .pgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+/* Tetapan */
+.tset{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;align-items:start}
+.slist{padding:8px!important}
+.srow{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:8px 10px;border:0;border-radius:14px;background:none;color:var(--tx);font:inherit;text-align:left;cursor:pointer}
+.srow+.srow{border-top:1px solid rgba(196,181,253,.08);border-radius:0 0 14px 14px}
+.srow>span:nth-child(2){flex:1;min-width:0}.srow b{display:block;font-size:14px;font-weight:600}.srow small{display:block;font-size:12px;color:var(--mu)}
+.srow>i{width:16px;height:16px;color:var(--mu2)}
+.srow .ci{width:36px;height:36px;flex:none;border-radius:12px;display:flex;align-items:center;justify-content:center;background:rgba(139,92,246,.16);color:#c4b5fd}
+.srow .ci i{width:18px;height:18px}
+.srow.bad b,.srow.bad .ci{color:#fca5a5}.srow.bad .ci{background:rgba(239,68,68,.14)}
+.srow:active{background:rgba(255,255,255,.05)}
+.tentang .hint{font-size:12.5px}
+/* Chat AI */
+#pg-ai .chat{max-width:760px;margin:0 auto;min-height:calc(100dvh - 220px)}
+#pg-ai .chb{display:flex;align-items:center;gap:10px;margin:0 0 12px;padding-bottom:12px;border-bottom:1px solid rgba(196,181,253,.12)}
+.chav{width:40px;height:40px;border-radius:50%;flex:none;background:#1c0e3a}
+.chn{flex:1;min-width:0}.chn b{display:block;font-size:15px}.chn .baki{display:inline-block;margin-top:2px;padding:2px 8px;font-size:11px}
+#pg-ai .log{flex:1}
+#pg-ai .qk{display:flex;flex-wrap:wrap;gap:8px}
+/* tetamu (chat sebelum log masuk): tiada menu */
+.tetamu #rail,.tetamu .who,.tetamu #aiBtn{display:none!important}
+
+/* ---------- TABLET & LAPTOP (≥768px): sidebar 5 item ---------- */
+@media (min-width:768px){
+  #vDash .rail{gap:12px;padding:14px 0}
+  #vDash .rail .ri{width:46px;height:46px}
+}
+/* ---------- PHONE (<768px): bar bawah neumorphism, ikon sahaja ---------- */
+@media (max-width:767px){
+  #vDash{padding:calc(78px + env(safe-area-inset-top)) 12px calc(104px + env(safe-area-inset-bottom)) 12px;height:auto;min-height:100dvh;overflow:visible}
+  #vDash .topbar{position:fixed;z-index:28;top:calc(8px + env(safe-area-inset-top));left:12px;right:12px;height:58px;min-height:58px;padding:6px 8px 6px 6px;
+    background:rgba(26,14,50,.92);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+  #vDash .stage{display:block;padding:0;border-radius:0}
+  #vDash .main{height:auto;overflow:visible;padding:0}
+  #vDash .rail{position:fixed;z-index:30;top:auto!important;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom))!important;width:auto;height:64px;max-height:none;
+    flex-direction:row;justify-content:space-around;align-items:center;gap:0;padding:0 8px;border-radius:24px;overflow:visible;
+    background:#1b1033;border:1px solid rgba(255,255,255,.04);
+    box-shadow:8px 8px 18px rgba(4,1,12,.75),-5px -5px 14px rgba(72,46,128,.22),inset 0 1px 0 rgba(255,255,255,.05);
+    -webkit-backdrop-filter:none;backdrop-filter:none;animation:none}
+  #vDash .rail>.ri:first-child{margin-top:0}
+  #vDash .rail .ri{width:52px;height:46px;border-radius:16px;color:rgba(237,233,254,.5);background:none;box-shadow:none}
+  #vDash .rail .ri i{width:22px;height:22px}
+  #vDash .rail .ri.on{color:#fff;background:#1b1033;box-shadow:inset 4px 4px 9px rgba(4,1,12,.75),inset -3px -3px 8px rgba(72,46,128,.28)}
+  #vDash .rail .ri.on:after{content:"";position:absolute;bottom:4px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:#f472b6;box-shadow:0 0 8px #f472b6}
+  #vDash .notch{display:none}
+  .ugrid{grid-template-columns:1fr;gap:12px;margin-bottom:12px}
+  .c-talian{padding:14px 16px!important}
+  #vDash .card{padding:18px}
+  .row4{gap:12px}
+  .tset,#pg-profil .pgrid{grid-template-columns:1fr;gap:12px}
+  #pg-ai .chat{min-height:calc(100dvh - 210px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
+  .wt small{display:none}
+}
+@media (max-width:379px){#vDash .topbar{left:8px;right:8px}.wt{display:block}}
+@media (prefers-reduced-motion:reduce){#vDash .page.on{animation:none}.aisalam{transition:none}}
+#pg-profil .crow{display:flex;gap:12px;align-items:center;padding:10px 0}
+#pg-profil .pfn small{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+#pg-ai .chb .ib{width:44px;height:44px;font-size:22px;line-height:1}

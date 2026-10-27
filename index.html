@@ -74,83 +74,51 @@
   <p class="ft">&copy; BlackFoxCyber &middot; Secure Dorm Network</p>
 </section>
 
-<!-- ===================== DASHBOARD (Glassy Dashboard V2 · Midnight Neon) ===================== -->
+<!-- ===================== DASHBOARD (V6 ringkas: bar bawah di phone, sidebar di tablet/laptop) ===================== -->
 <section class="view" id="vDash">
   <header class="topbar gls">
     <button class="who" data-pg="profil" aria-label="Profil"><span class="ava" id="tAva">B</span><span class="wt"><small>Selamat datang,</small><b id="tNama">-</b></span></button>
-    <button class="ask" data-act="askAI" aria-label="Tanya BlackFox AI"><span class="orb"><i data-ic="spark"></i></span><span class="askt">Tanya BlackFox AI: &ldquo;Kenapa internet saya lambat?&rdquo;</span></button>
     <div class="tr">
       <span class="line" data-line><i></i><span>Online</span></span>
       <a class="gb" id="bOut" href="http://192.168.88.1/status" hidden aria-label="Keluar ke halaman WiFi" data-tip="Keluar ke WiFi"><i data-ic="exit"></i></a>
+      <button class="aib" id="aiBtn" data-act="askAI" aria-label="Tanya BlackFox AI"><img src="maskot.svg" alt="" width="40" height="40"></button>
     </div>
   </header>
-  <div class="stage gls">
+  <button class="aisalam" id="aiSalam" type="button" data-act="askAI" hidden></button>
+  <div class="stage">
     <nav class="rail" id="rail" aria-label="Menu">
       <button class="ri on" data-pg="utama" data-tip="Utama" aria-label="Utama"><i data-ic="home"></i></button>
       <button class="ri" data-pg="pakej" data-tip="Pakej" aria-label="Pakej"><i data-ic="bag"></i></button>
-      <button class="ri" data-pg="pin" data-tip="Tukar PIN" aria-label="Tukar PIN"><i data-ic="key"></i></button>
-      <button class="ri" data-pg="tg" data-tip="Telegram" aria-label="Telegram"><i data-ic="send"></i></button>
-      <button class="ri" data-pg="ai" data-tip="Tanya AI" aria-label="Tanya AI"><i data-ic="spark"></i></button>
       <button class="ri" data-pg="laju" data-tip="Uji Laju" aria-label="Uji Laju"><i data-ic="gauge"></i></button>
       <button class="ri" data-pg="profil" data-tip="Profil" aria-label="Profil"><i data-ic="user"></i></button>
-      <button class="ri out" data-act="keluar" data-tip="Log Keluar" aria-label="Log Keluar"><i data-ic="logout"></i></button>
+      <button class="ri" data-pg="tetapan" data-tip="Tetapan" aria-label="Tetapan"><i data-ic="gear"></i></button>
       <span class="notch" id="notch"></span>
     </nav>
 
     <main class="main" id="main">
       <div class="alert" data-alert></div>
 
-      <!-- UTAMA -->
+      <!-- UTAMA: salam, baki kuota, Sambung WiFi, talian, solat & cuaca -->
       <div class="page" id="pg-utama">
-        <div class="ph">
-          <div><h1 class="wr" id="salam">Assalamualaikum</h1><p id="bsub">WiFi FOX ULTRA 5G sedia digunakan.</p></div>
-          <div class="pha"><button class="lg sm" data-act="resitPg"><i data-ic="receipt"></i><span>Hantar Resit</span></button></div>
-        </div>
-        <div class="cadpin card a" id="cadPin" hidden><span class="cpi">🔑</span><div><b>Tukar ke PIN 6 digit?</b><small>Lebih mudah diingat. PIN 9 digit lama masih boleh digunakan.</small></div><button class="lg sm pri" data-pg="pin">Tukar</button><button class="lg sm" data-act="pin9Tutup">Nanti</button></div>
-        <div class="v2r1">
+        <div class="ph"><div><h1 id="salam">Assalamualaikum</h1><p id="bsub">WiFi FOX ULTRA 5G sedia digunakan.</p></div></div>
+        <div class="cadpin card a" id="cadPin" hidden><span class="cpi">🔑</span><div><b>Tukar ke PIN 6 digit?</b><small>Lebih mudah diingat. PIN 9 digit lama masih boleh digunakan.</small></div><button class="lg sm pri" data-pg="tetapan">Tukar</button><button class="lg sm" data-act="pin9Tutup">Nanti</button></div>
+        <div class="ugrid">
           <div class="card a c-baki">
             <div class="ch"><span class="lb">Baki Kuota</span><span class="chip" id="xp">-</span></div>
             <div class="big" id="qb">-</div>
-            <div class="dl"><span class="chip ok" id="pg2">-</span><small id="xt">-</small></div>
-            <div class="brow">
-              <button class="lg dark" data-act="sambung" id="bSambung"><i data-ic="wifi"></i><span>Sambung WiFi</span></button>
-              <button class="lg" data-pg="pakej"><i data-ic="plusc"></i><span>Tambah Kuota</span></button>
-            </div>
-            <button class="lg sec full" data-act="percuma" id="bFree" hidden><i data-ic="gift"></i><span>Ambil Percuma 5GB</span></button>
-            <div class="sub3">
-              <div class="s3h"><b>Ringkasan</b><small>Pakej semasa</small></div>
-              <div class="s3"><span><small>Kuota</small><b id="tKuota">-</b><em>GB</em></span><span><small>Telah guna</small><b id="tGuna">-</b><em>GB</em></span><span><small>Peranti</small><b id="tPer">-</b><em>serentak</em></span></div>
-            </div>
-          </div>
-          <div class="quad">
-            <button class="card a tile hl" data-pg="pakej"><span class="tt">Hari Berbaki<span class="ti"><i data-ic="clock"></i></span></span><b id="tHari">-</b><small><em class="chip" id="tHariC">-</em><span id="tHariS">sebelum tamat</span></small></button>
-            <button class="card a tile" data-pg="pakej"><span class="tt">Pelan<span class="ti"><i data-ic="bag"></i></span></span><b id="tPelan">-</b><small><em class="chip" id="tPelanC">-</em><span id="tPelanS"></span></small></button>
-            <div class="card a tile c-talian"><span class="tt">Talian<span class="ti"><i data-ic="wifi"></i></span></span><b id="tChip">Online</b><small><em class="chip ok" id="tTalC">Normal</em><span id="tSejak">Talian asrama</span></small></div>
-            <button class="card a tile" data-pg="tg"><span class="tt">Telegram<span class="ti"><i data-ic="send"></i></span></span><b id="tTg">-</b><small><em class="chip" id="tTgC">-</em><span>Amaran &amp; notis</span></small></button>
-          </div>
-          <div class="card a c-chart">
-            <div class="ch"><h3>Perbelanjaan WiFi</h3><span class="leg"><i></i>RM</span></div>
-            <small class="hint" id="chS">6 bulan terakhir</small>
-            <div class="chart" id="chart"></div>
-          </div>
-        </div>
-        <div class="v2r2">
-          <div class="card a c-had">
-            <div class="ch"><h3>Had Kuota</h3><b class="pct" id="pg1">-</b></div>
             <div class="meter"><i id="meter"></i></div>
-            <div class="mrow"><small id="mGuna">-</small><small id="mKuota">-</small></div>
-            <div class="cad" id="cad">
-              <span class="cadi"><i data-ic="spark"></i></span>
-              <div><b id="prT">Tambah Kuota Bila Perlu</b><p id="prP">Add-on dari RM10. Aktif automatik selepas bayar.</p></div>
-              <button class="lg pri sm" id="prB" data-pg="pakej"><span>Lihat Pakej</span></button>
-            </div>
+            <div class="dl"><span class="chip ok" id="pg2">-</span><small id="xt">-</small></div>
+            <button class="lg pri full" data-act="sambung" id="bSambung"><i data-ic="wifi"></i><span>Sambung WiFi</span></button>
+            <button class="lg sec full" data-act="percuma" id="bFree" hidden><i data-ic="gift"></i><span>Ambil Percuma 5GB</span></button>
           </div>
-          <div class="card a c-akt">
-            <div class="ch"><h3>Aktiviti Terkini</h3><div class="seg" id="nTabs"><span class="knob"></span><button class="on" data-nt="semua">Semua</button><button data-nt="notis">Notis</button><button data-nt="akaun">Akaun</button></div></div>
-            <div class="nlist" id="notif"></div>
+          <div class="card a c-talian">
+            <span class="tli"><i data-ic="wifi"></i></span>
+            <div><small>Talian asrama</small><b id="tChip">Online</b></div>
+            <em class="chip ok" id="tTalC">Normal</em>
+            <small class="tls" id="tSejak">Talian asrama</small>
           </div>
         </div>
-        <div class="row4">
+        <div class="row4" id="csRow">
               <div class="card a c-solat">
                 <div class="ch"><h3>🕌 Waktu Solat</h3><button class="zonb" data-act="zon" id="zonB" aria-label="Tukar lokasi">📍 <span id="zonN">Pekan Gemencheh</span> ▾</button></div>
                 <div class="snx"><b id="sNext">-</b><small id="sHijri"></small></div>
@@ -168,107 +136,28 @@
                 <div class="cow" id="cOw" hidden><span><small>Terasa</small><b id="owT">–</b></span><span><small id="owAL">Angin</small><b id="owA">–</b></span><span><small>Hujan</small><b id="owH">–</b></span><span><small>Lembap</small><b id="owL">–</b></span></div>
                 <small class="upd" id="cUpd"></small>
               </div>
-            </div>
+        </div>
       </div>
 
-      <!-- PAKEJ -->
+      <!-- PAKEJ: senarai pakej + Tambah Kuota (add-on) + Hantar Resit (SATU tempat) -->
       <div class="page" id="pg-pakej">
-        <div class="ph">
-          <div><h1 class="wr">Pakej</h1><p>Pelan bulanan, pas pantas dan add-on. Bayar FPX &amp; DuitNow QR, internet aktif automatik.</p></div>
-          <div class="pha"><div class="tabs flt" id="fTabs"><button class="on" data-f="semua">Semua</button><button data-f="bulanan">Bulanan</button><button data-f="pantas">Pantas</button><button data-f="addon">Add-on</button></div><button class="pill" data-act="resit"><i data-ic="receipt"></i><span>Hantar Resit</span></button></div>
-        </div>
-        <div class="sv">
-          <div>
-            <div class="card a" id="jualTutup" hidden><h3>Jualan Belum Dibuka</h3><p class="hint">Pembelian pakej akan dibuka tidak lama lagi.</p></div>
-            <div class="grid" id="grid"></div>
-          </div>
-          <aside class="card a coll">
-            <div class="ch"><h3>Pakej Semasa</h3><button class="ib" data-pg="utama" aria-label="Utama"><i data-ic="plusc"></i></button></div>
-            <div class="crow"><span class="ci k"><i data-ic="chart"></i></span><div><b>Kuota digunakan</b><small id="cr1">-</small><span class="pb"><i id="cb1"></i></span></div></div>
-            <div class="crow"><span class="ci"><i data-ic="clock"></i></span><div><b>Tempoh berlalu</b><small id="cr2">-</small><span class="pb"><i id="cb2"></i></span></div></div>
-            <div class="crow"><span class="ci"><i data-ic="device"></i></span><div><b>Peranti</b><small id="cr3">-</small><span class="pb"><i id="cb3"></i></span></div></div>
-            <div class="crow"><span class="ci"><i data-ic="bag"></i></span><div><b id="cr4b">Pelan</b><small id="cr4">-</small></div></div>
-            <div class="cbig"><b id="cHari">-</b><small>hari lagi sebelum pakej tamat</small></div>
-            <div class="rs" id="rsC">
-              <b>Sudah bayar tapi belum aktif?</b>
-              <small>Hantar screenshot resit ToyyibPay. AI baca resit dan sahkan terus dengan ToyyibPay. Gambar tidak disimpan.</small>
-              <input type="file" id="rsF" accept="image/jpeg,image/png" hidden>
-              <div class="ts" id="tsR"></div>
-              <button class="btn" data-act="resit" id="rsB">Hantar Resit</button>
-              <div class="msg" id="rsM"></div>
-            </div>
-          </aside>
+        <div class="ph"><div><h1>Pakej</h1><p>Bayar FPX &amp; DuitNow QR. Internet aktif automatik.</p></div></div>
+        <div class="tabs flt" id="fTabs"><button class="on" data-f="semua">Semua</button><button data-f="bulanan">Bulanan</button><button data-f="pantas">Pantas</button><button data-f="addon">Tambah Kuota</button></div>
+        <div class="card a" id="jualTutup" hidden><h3>Jualan Belum Dibuka</h3><p class="hint">Pembelian pakej akan dibuka tidak lama lagi.</p></div>
+        <div class="grid" id="grid"></div>
+        <div class="card a rs" id="rsC">
+          <b>Sudah bayar tapi belum aktif?</b>
+          <small>Hantar screenshot resit ToyyibPay. AI baca resit dan sahkan terus dengan ToyyibPay. Gambar tidak disimpan.</small>
+          <input type="file" id="rsF" accept="image/jpeg,image/png" hidden>
+          <div class="ts" id="tsR"></div>
+          <button class="btn" data-act="resit" id="rsB"><i data-ic="receipt"></i>Hantar Resit</button>
+          <div class="msg" id="rsM"></div>
         </div>
       </div>
 
-      <!-- TUKAR PIN -->
-      <div class="page" id="pg-pin">
-        <div class="ph"><div><h1 class="wr">Tukar PIN</h1><p>PIN untuk log masuk WiFi dan app. Tepat 6 digit nombor.</p></div></div>
-        <div class="sv">
-          <form class="card a pform" data-form="pin">
-            <div class="ch"><h3>PIN Baru</h3><span class="ib"><i data-ic="key"></i></span></div>
-            <label class="fld"><i data-ic="lock"></i><input class="in" id="np" type="password" inputmode="numeric" maxlength="6" placeholder="PIN baru (6 digit)" data-digit autocomplete="new-password"></label>
-            <label class="fld"><i data-ic="lock"></i><input class="in" id="np2" type="password" inputmode="numeric" maxlength="6" placeholder="Taip semula PIN baru" data-digit autocomplete="new-password"></label>
-            <div class="ts" id="tsP"></div>
-            <button class="btn" type="submit">Simpan PIN</button>
-            <div class="msg" id="pmsg"></div>
-          </form>
-          <aside class="card a coll">
-            <div class="ch"><h3>Tips Keselamatan</h3></div>
-            <div class="crow"><span class="ci k"><i data-ic="lock"></i></span><div><b>Jangan kongsi PIN</b><small>Akaun dikongsi boleh disekat.</small></div></div>
-            <div class="crow"><span class="ci"><i data-ic="device"></i></span><div><b>Peranti baru</b><small>Log masuk semula dengan PIN baru.</small></div></div>
-            <div class="crow"><span class="ci"><i data-ic="spark"></i></span><div><b>Lupa PIN?</b><small>Tanya BlackFox AI dari app atau Telegram.</small></div></div>
-          </aside>
-        </div>
-      </div>
-
-      <!-- TELEGRAM -->
-      <div class="page" id="pg-tg">
-        <div class="ph"><div><h1 class="wr">Telegram</h1><p>Sambung @blackfoxcyber_alert_bot untuk amaran kuota, notis gangguan dan butiran log masuk.</p></div></div>
-        <div class="sv">
-          <div class="card a tgc">
-            <div class="ch"><h3 id="tgH">Sambung Telegram</h3><span class="chip" id="tgSt">Belum</span></div>
-            <p class="hint" id="tgS">Tekan butang di bawah. Telegram akan terbuka terus ke bot. Tekan <b>START</b> dan akaun anda disambung automatik.</p>
-            <a class="btn" id="tgL" href="https://t.me/blackfoxcyber_alert_bot" target="_blank" rel="noopener"><i data-ic="send"></i>Buka Telegram</a>
-            <p class="hint atas">Jika Telegram tidak terbuka, cari <b>@blackfoxcyber_alert_bot</b> dan hantar kod ini:</p>
-            <button class="code" id="tgK" data-act="salinKod">...</button>
-          </div>
-          <aside class="card a coll">
-            <div class="ch"><h3>Manfaat</h3></div>
-            <div class="crow"><span class="ci k"><i data-ic="bell"></i></span><div><b>Amaran kuota</b><small>Sebelum kuota habis &amp; pakej tamat.</small></div></div>
-            <div class="crow"><span class="ci"><i data-ic="wifi"></i></span><div><b>Notis gangguan</b><small>Terus bila talian terganggu.</small></div></div>
-            <div class="crow"><span class="ci"><i data-ic="key"></i></span><div><b>Butiran log masuk</b><small>PIN baru dihantar secara peribadi.</small></div></div>
-            <div class="crow"><span class="ci"><i data-ic="receipt"></i></span><div><b>Hantar resit</b><small>Hantar gambar resit terus ke bot.</small></div></div>
-          </aside>
-        </div>
-      </div>
-
-      <!-- TANYA AI -->
-      <div class="page" id="pg-ai">
-        <div class="ph"><div><h1 class="wr">Tanya AI</h1><p>BlackFox AI sedia membantu 24 jam: WiFi, PIN, bayaran, pelajaran, bahasa, sains, cuaca &amp; solat.</p></div></div>
-        <div class="sv">
-          <div class="card a chat">
-            <div class="chb"><small class="baki" id="aiBaki" hidden></small><span class="sp"></span><button class="lk" type="button" data-act="orbTunjuk" id="orbTunjuk" hidden>Tunjuk butang AI</button><button class="lk" type="button" data-act="chatPadam" id="chatPadamB" hidden>Padam sejarah</button></div>
-            <div class="log" id="log"></div>
-            <div class="qk" id="qk"><button>Kenapa internet saya lambat?</button><button>Saya lupa PIN</button><button>Macam mana nak tambah kuota?</button><button>Kenapa asyik diminta log masuk?</button><button>Apa manfaat sambung Telegram?</button><button>Terangkan kitaran air dengan ringkas</button></div>
-            <div class="ts" id="tsC"></div>
-            <form class="cin" data-form="chat"><input id="cq" placeholder="Tanya apa sahaja..." autocomplete="off"><button class="send" type="submit" aria-label="Hantar"><i data-ic="arrowu"></i></button></form>
-          </div>
-          <aside class="card a coll">
-            <div class="ch"><h3>Boleh bantu</h3></div>
-            <div class="crow"><span class="ci k"><i data-ic="key"></i></span><div><b>Reset PIN</b><small>Selepas log masuk app.</small></div></div>
-            <div class="crow"><span class="ci"><i data-ic="wifi"></i></span><div><b>Masalah sambungan</b><small>Langkah demi langkah.</small></div></div>
-            <div class="crow"><span class="ci"><i data-ic="bag"></i></span><div><b>Pilih pakej</b><small>Ikut corak guna anda.</small></div></div>
-            <div class="crow"><span class="ci"><i data-ic="user"></i></span><div><b>Panggil admin</b><small>Jika AI tidak dapat selesaikan.</small></div></div>
-          </aside>
-        </div>
-      </div>
-
-      <!-- PROFIL -->
       <!-- UJI LAJU (Cloudflare) -->
       <div class="page" id="pg-laju">
-        <div class="ph"><div><h1 class="wr">Uji Laju</h1><p>Uji kelajuan WiFi asrama di tempat anda. Keputusan membantu admin cari kawasan yang perlahan.</p></div></div>
-        <div class="sv">
+        <div class="ph"><div><h1>Uji Laju</h1><p>Uji kelajuan WiFi di tempat anda. ~25MB, sekali setiap 10 minit.</p></div></div>
           <div class="card a lj">
             <div class="ljm">
               <svg viewBox="0 0 200 120" aria-hidden="true"><defs><linearGradient id="ljg" x1="0" x2="1"><stop offset="0" stop-color="#22D3EE"/><stop offset="1" stop-color="#7C3AED"/></linearGradient></defs>
@@ -287,56 +176,80 @@
             </div>
             <button class="lg pri full" data-act="lajuMula" id="ljB">Mula Uji</button>
             <p class="msg" id="ljMsg"></p>
-            <p class="ljcf">Powered by Cloudflare</p>
+            <p class="ljcf">Powered by Cloudflare · <a href="https://www.speedtest.net/" target="_blank" rel="noopener">Speedtest by Ookla</a></p>
           </div>
-          <aside class="card a coll">
-            <div class="ch"><h3>Tentang ujian</h3></div>
-            <ul class="ljnota">
-              <li>Ujian guna <b>sedikit kuota</b> (maksimum ~25MB).</li>
-              <li>Sekali setiap <b>10 minit</b> sahaja.</li>
-              <li>Pilih blok sebenar anda. Tiada GPS digunakan.</li>
-              <li>Keputusan (lokasi, laju, ping) disimpan untuk peta kawasan slow admin.</li>
-            </ul>
-            <a class="lg sm full" href="https://www.speedtest.net/" target="_blank" rel="noopener">Uji dengan Speedtest by Ookla</a>
-            <div class="ljsej" id="ljSej"></div>
-          </aside>
-        </div>
+        <div class="ljsej" id="ljSej"></div>
       </div>
 
+      <!-- PROFIL: akaun, pakej semasa, aktiviti, perbelanjaan -->
       <div class="page" id="pg-profil">
         <div class="card a pfh">
-          <div class="pban" data-art="6"></div>
           <div class="pfr">
             <span class="pav" id="pav">B</span>
             <div class="pfn"><h2 id="pnama">-</h2><p><span id="pm">-</span> &middot; <span id="ppl">-</span></p><small><i data-ic="send"></i><span id="ptg">-</span><i data-ic="device"></i><span id="pper">-</span></small></div>
-            <div class="pfa"><span class="chip ok" id="pst"><i class="d"></i>Aktif</span><button class="pill gh" data-act="pasangApp"><span>📲 Pasang App</span></button><button class="pill" data-pg="pin"><i data-ic="key"></i><span>Tukar PIN</span></button></div>
+            <span class="chip ok" id="pst"><i class="d"></i>Aktif</span>
           </div>
-        </div>
-        <div class="stats">
-          <div class="card a sc"><small><i data-ic="chart"></i>Kuota pakej</small><b data-n id="s1">-</b><em>GB untuk kitaran ini</em></div>
-          <div class="card a sc"><small><i data-ic="wifi"></i>Telah guna</small><b data-n id="s2">-</b><em>GB setakat ini</em></div>
-          <div class="card a sc"><small><i data-ic="clock"></i>Hari berbaki</small><b data-n id="s3">-</b><em id="s3e">sebelum tamat</em></div>
-          <div class="card a sc"><small><i data-ic="receipt"></i>Pembelian</small><b data-n id="s4">-</b><em id="s4e">jumlah RM0</em></div>
+          <p class="hint" id="pAbout">-</p>
         </div>
         <div class="pgrid">
           <div class="card a">
-            <div class="ch"><h3>Tentang Akaun</h3></div>
-            <p class="hint" id="pAbout">-</p>
-            <div class="chips" id="pChips"></div>
-          </div>
-          <div class="card a">
-            <div class="ch"><h3>Sejarah Pembelian</h3><b class="tot" id="pTot">RM0</b></div>
-            <div class="bars" id="pBars"></div>
+            <div class="ch"><h3>Pakej Semasa</h3><b class="tot" id="cr4b">Pelan</b></div>
+            <div class="crow"><span class="ci k"><i data-ic="chart"></i></span><div><b>Kuota digunakan</b><small id="cr1">-</small><span class="pb"><i id="cb1"></i></span></div></div>
+            <div class="crow"><span class="ci"><i data-ic="clock"></i></span><div><b>Tempoh berlalu</b><small id="cr2">-</small><span class="pb"><i id="cb2"></i></span></div></div>
+            <div class="crow"><span class="ci"><i data-ic="device"></i></span><div><b>Peranti</b><small id="cr3">-</small><span class="pb"><i id="cb3"></i></span></div></div>
+            <div class="cbig"><b id="cHari">-</b><small id="cr4">hari lagi sebelum pakej tamat</small></div>
           </div>
           <div class="card a">
             <div class="ch"><h3>Aktiviti Terkini</h3></div>
             <div class="nlist" id="pAkt"></div>
           </div>
           <div class="card a">
-            <div class="ch"><h3>Sokongan</h3><button class="ib" data-pg="ai" aria-label="Tanya AI"><i data-ic="plusc"></i></button></div>
-            <div class="crow"><span class="ci k"><i data-ic="spark"></i></span><div><b>BlackFox AI</b><small>Jawapan segera 24 jam</small></div></div>
-            <div class="crow"><span class="ci"><i data-ic="send"></i></span><div><b>Telegram</b><small id="pTg2">-</small></div></div>
+            <div class="ch"><h3>Perbelanjaan</h3><b class="tot" id="pTot">RM0</b></div>
+            <div class="bars" id="pBars"></div>
           </div>
+        </div>
+      </div>
+
+      <!-- TETAPAN: PIN, Telegram, Pasang App, Lokasi, Padam sejarah chat, Log Keluar, Tentang -->
+      <div class="page" id="pg-tetapan">
+        <div class="ph"><div><h1>Tetapan</h1></div></div>
+        <div class="tset">
+          <form class="card a pform" data-form="pin" id="setPin">
+            <div class="ch"><h3>Tukar PIN</h3><span class="ib"><i data-ic="key"></i></span></div>
+            <label class="fld"><i data-ic="lock"></i><input class="in" id="np" type="password" inputmode="numeric" maxlength="6" placeholder="PIN baru (6 digit)" data-digit autocomplete="new-password"></label>
+            <label class="fld"><i data-ic="lock"></i><input class="in" id="np2" type="password" inputmode="numeric" maxlength="6" placeholder="Taip semula PIN baru" data-digit autocomplete="new-password"></label>
+            <div class="ts" id="tsP"></div>
+            <button class="btn" type="submit">Simpan PIN</button>
+            <div class="msg" id="pmsg"></div>
+          </form>
+          <div class="card a tgc" id="setTg">
+            <div class="ch"><h3 id="tgH">Sambung Telegram</h3><span class="chip" id="tgSt">Belum</span></div>
+            <p class="hint" id="tgS">Amaran kuota, notis gangguan &amp; PIN baru terus ke Telegram. Tekan butang, kemudian <b>START</b>.</p>
+            <a class="btn" id="tgL" href="https://t.me/blackfoxcyber_alert_bot" target="_blank" rel="noopener"><i data-ic="send"></i>Buka Telegram</a>
+            <p class="hint atas">Atau hantar kod ini kepada <b>@blackfoxcyber_alert_bot</b>:</p>
+            <button class="code" id="tgK" data-act="salinKod">...</button>
+          </div>
+          <div class="card a slist">
+            <button class="srow" data-act="pasangApp"><span class="ci"><i data-ic="device"></i></span><span><b>Pasang App</b><small>Buka terus dari skrin utama</small></span><i data-ic="chr"></i></button>
+            <button class="srow" data-act="zon"><span class="ci"><i data-ic="pin"></i></span><span><b>Lokasi cuaca &amp; solat</b><small id="setLok">Pekan Gemencheh</small></span><i data-ic="chr"></i></button>
+            <button class="srow" data-act="chatPadam" id="chatPadamB"><span class="ci"><i data-ic="trash"></i></span><span><b>Padam sejarah chat</b><small>Sejarah BlackFox AI anda</small></span><i data-ic="chr"></i></button>
+            <button class="srow bad" data-act="keluar"><span class="ci"><i data-ic="logout"></i></span><span><b>Log Keluar</b><small>Keluar dari app di phone ini</small></span><i data-ic="chr"></i></button>
+          </div>
+          <div class="card a tentang">
+            <div class="ch"><h3>Tentang</h3></div>
+            <p class="hint">BlackFox WiFi &middot; WiFi asrama BlackFoxCyber. Bayaran ToyyibPay, AI oleh Gemini, cuaca Weather data &copy; OpenWeather &middot; MET Malaysia, waktu solat JAKIM, uji laju Cloudflare.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- BLACKFOX AI: panel chat penuh (dibuka dari ikon maskot di bar atas) -->
+      <div class="page" id="pg-ai">
+        <div class="card a chat">
+          <div class="chb"><img class="chav" src="maskot.svg" alt=""><div class="chn"><b>BlackFox AI</b><small class="baki" id="aiBaki" hidden></small></div><button class="ib" type="button" data-act="aiTutup" aria-label="Tutup chat">&times;</button></div>
+          <div class="log" id="log"></div>
+          <div class="qk" id="qk"><button data-q="Saya lupa PIN">Lupa PIN</button><button data-q="Saya tak boleh log masuk WiFi">Tak boleh log masuk</button><button data-q="Saya nak beli pakej, mana yang sesuai?">Beli pakej</button><button data-q="Cuaca hari ini macam mana?">Cuaca hari ini</button></div>
+          <div class="ts" id="tsC"></div>
+          <form class="cin" data-form="chat"><input id="cq" placeholder="Tanya apa sahaja..." autocomplete="off"><button class="send" type="submit" aria-label="Hantar"><i data-ic="arrowu"></i></button></form>
         </div>
       </div>
     </main>
@@ -381,8 +294,6 @@
     <div class="btns" id="mPB"></div>
   </div>
 </div>
-<!-- Butang AI orb (selepas log masuk; boleh disorok) -->
-<div class="orb" id="aiOrb" hidden><button class="orbb" type="button" data-act="askAI" aria-label="Tanya BlackFox AI"><img src="maskot.svg" alt=""></button><button class="orbx" type="button" data-act="orbSorok" aria-label="Sorok butang AI">&times;</button></div>
 <!-- Pilih lokasi waktu solat & cuaca (disimpan dalam phone sahaja) -->
 <div class="modal" id="mZ" role="dialog" aria-modal="true" aria-labelledby="mZT">
   <div class="mbox">

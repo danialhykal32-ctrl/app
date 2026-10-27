@@ -139,6 +139,14 @@
   }
   function tsAwal() { tsSedia(function (ada) { if (ada) ['tsL', 'tsD'].forEach(tsPasang); }); }
 
+  // ---------- maskot AI di skrin log masuk / daftar ----------
+  var MK = ['Lupa PIN? Saya boleh bantu', 'Tak boleh log masuk?', 'Perlukan bantuan? Tanya saja', 'Nak beli pakej?'], MKi = 0;
+  setInterval(function () {
+    if (document.hidden || !el('vAuth').classList.contains('on')) return;
+    var g = el('mkGel'); g.classList.add('tukar');
+    setTimeout(function () { MKi = (MKi + 1) % MK.length; teks(g, MK[MKi]); g.classList.remove('tukar'); }, 220);
+  }, 4000);
+
   // ---------- log masuk / daftar (V2) ----------
   function tab(i) {
     var a = el('auth'); if (a.getAttribute('data-b')) return; a.setAttribute('data-b', '1');
@@ -163,7 +171,7 @@
     el('vAuth').className = 'view'; el('vDash').className = 'view on'; document.body.classList.add('dash');
     el('bOut').hidden = !ss('bfx_wifi');
     var rl = el('rail'); rl.classList.remove('mula'); void rl.offsetWidth; rl.classList.add('mula');
-    PG = ''; go('utama'); muatCS(); prefetchAsrama(); muatProfil();
+    PG = ''; go('utama'); muatCS(); prefetchAsrama(); muatProfil(); orbPapar();
   }
   // tamat = token sudah tidak sah di server (tak perlu beritahu server)
   function keluar(tamat) {
@@ -172,7 +180,8 @@
     TOK = ''; AK = null; PROF = null; TG = null; ls('bfx_t', null); ls('bfx_ak', null);
     document.body.classList.remove('tetamu'); document.body.classList.remove('dash');
     el('vDash').className = 'view'; el('vAuth').className = 'view on';
-    if (!tetamu) { el('lp').value = ''; el('log').textContent = ''; }
+    if (!tetamu) { el('lp').value = ''; el('log').textContent = ''; muatSejarah.m = ''; bakiAI(null); }
+    el('aiOrb').hidden = true;
   }
 
   // ---------- navigasi (kabur -> jelas, sebijik V18) ----------
@@ -201,6 +210,7 @@
       if (pg === 'tg') muatTg();
       if (pg === 'profil') muatProfil();
       if (pg === 'ai') mulaChat();
+      orbPapar();
       if (pg === 'laju') lajuSedia();
       if (pg === 'pin') tsSedia(function (a) { if (a) tsPasang('tsP'); });
       if (pg === 'pakej') tsSedia(function (a) { if (a) tsPasang('tsR'); });
@@ -417,13 +427,40 @@
 
   // ---------- Tanya AI ----------
   function tambah(w, t) { var d = document.createElement('div'); d.className = 'b ' + w; d.textContent = t; el('log').appendChild(d); el('log').scrollTop = 99999; return d; }
-  function mulaChat() { if (!el('log').children.length) tambah('a', 'Hai! Saya BlackFox AI 🦊 Tanya apa sahaja tentang WiFi asrama: kuota, PIN, sambungan, bayaran.'); setTimeout(function () { if (matchMedia('(hover:hover)').matches) el('cq').focus(); }, 400); }
+  var SAPA = 'Assalamualaikum! Saya BlackFox AI 🦊 Saya boleh bantu hal WiFi asrama, dan juga soalan pelajaran, bahasa, sains, cuaca dan waktu solat.';
+  function bakiAI(b, h) { var e = el('aiBaki'); if (b === null || b === undefined) { e.hidden = true; return; } e.hidden = false; teks(e, 'Baki soalan hari ini: ' + b + '/' + h); }
+  // Sejarah chat: cache phone (paparan segera) + akaun di server (tab "Chat", auto padam 30 hari)
+  function simpanChatLokal() {
+    if (!AK || document.body.classList.contains('tetamu')) return;
+    var L = qa('#log .b').slice(-40).map(function (d) { return { p: d.classList.contains('u') ? 'u' : 'a', t: d.textContent }; }).filter(function (x) { return x.t; });
+    ls('bfx_chat_' + AK.m, JSON.stringify(L));
+  }
+  function paparSejarah(L) { var g = el('log'); g.textContent = ''; tambah('a', SAPA); (L || []).forEach(function (x) { tambah(x.p === 'u' ? 'u' : 'a', x.t); }); }
+  function muatSejarah() {
+    if (!AK || !TOK || document.body.classList.contains('tetamu') || muatSejarah.m === AK.m) return;
+    muatSejarah.m = AK.m;
+    var L = null; try { L = JSON.parse(ls('bfx_chat_' + AK.m) || 'null'); } catch (e) {}
+    if (L && L.length) paparSejarah(L);
+    api({ a: 'chatSejarah' }, function (r) { if (!r.ok) return; bakiAI(r.baki, r.had); if (r.sejarah && r.sejarah.length) { paparSejarah(r.sejarah); simpanChatLokal(); } });
+  }
+  function chatPadam() {
+    if (!AK || !confirm('Padam semua sejarah chat dengan BlackFox AI?')) return;
+    api({ a: 'chatPadam' }, function (r) { toast(r.msg || (r.ok ? 'Sejarah dipadam' : 'Gagal')); if (r.ok) { ls('bfx_chat_' + AK.m, null); el('log').textContent = ''; mulaChat(); } });
+  }
+  function bukaAITetamu() { document.body.classList.add('tetamu'); el('vAuth').className = 'view'; el('vDash').className = 'view on'; PG = ''; go('ai'); }
+  function orbPapar() {
+    var o = el('aiOrb'), sorok = ls('bfx_orb') === '0';
+    o.hidden = sorok || PG === 'ai' || document.body.classList.contains('tetamu') || !el('vDash').classList.contains('on');
+    el('orbTunjuk').hidden = !sorok || document.body.classList.contains('tetamu');
+  }
+  function mulaChat() { el('chatPadamB').hidden = !AK || document.body.classList.contains('tetamu'); muatSejarah(); if (!el('log').children.length) tambah('a', SAPA); setTimeout(function () { if (matchMedia('(hover:hover)').matches) el('cq').focus(); }, 400); }
   function hantar(q) {
     var t = q || el('cq').value; if (!t) return; el('cq').value = ''; tambah('u', t);
     var w = document.createElement('div'); w.className = 'b a'; w.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>'; el('log').appendChild(w); el('log').scrollTop = 99999;
-    var rq = { a: 'chat', msg: t, m: AK ? AK.m : el('lm').value, zon: zonKini() };
+    var rq = { a: 'chat', msg: t, m: AK ? AK.m : el('lm').value, lok: lokReq(), cid: cidKini() };
     var siap = function (r) {
       w.remove(); tambah('a', r.ok ? r.balas : (r.msg || 'Ralat'));
+      if (r.ok) { bakiAI(r.baki, r.had); simpanChatLokal(); }
       if (TOK) api({ a: 'akaun' }, function (x) { if (x.ok) setAk(x.akaun); });
     };
     if (Date.now() - (+ss('bfx_tsc') || 0) < 50 * 60e3) api(rq, function (r) { if (r.ts) apiTs('tsC', rq, siap); else siap(r); });
@@ -555,13 +592,13 @@
 
   // ---------- peristiwa ----------
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-act],[data-pg],[data-beli],[data-st],[data-nt],[data-f],[data-lapis],.qk button');
+    var t = e.target.closest('[data-act],[data-pg],[data-beli],[data-st],[data-nt],[data-f],[data-tempat],.qk button');
     if (!t) return;
     if (t.matches('.qk button')) { hantar(t.textContent); return; }
     if (t.hasAttribute('data-beli')) { e.preventDefault(); beli(t.getAttribute('data-beli')); return; }
     if (t.hasAttribute('data-st')) { STM = t.getAttribute('data-st'); statistik(); kira(document.querySelector('.c-stat')); return; }
     if (t.hasAttribute('data-nt')) { NT = t.getAttribute('data-nt'); qa('#nTabs button').forEach(function (b) { b.classList.toggle('on', b === t); }); notif(); kanta(); return; }
-    if (t.hasAttribute('data-lapis')) { tukarLapis(t.getAttribute('data-lapis')); return; }
+    if (t.hasAttribute('data-tempat')) { pilihTempat(+t.getAttribute('data-tempat')); return; }
     if (t.hasAttribute('data-f')) { tapis(t.getAttribute('data-f')); kanta(); return; }
     var act = t.getAttribute('data-act');
     if (t.hasAttribute('data-pg') && !act) { e.preventDefault(); go(t.getAttribute('data-pg')); if (t.classList.contains('ri') && matchMedia('(hover:none)').matches) tip(t, 900); return; }
@@ -593,7 +630,10 @@
       case 'salinLink': salin(linkApp(), 'Link disalin. Tampal dalam Safari / Chrome.'); break;
       case 'zon': bukaZon(); break;
       case 'csCuba': muatCS(true); break;
-      case 'petaHujan': petaHujan(); break;
+      case 'maskotAI': bukaAITetamu(); break;
+      case 'orbSorok': ls('bfx_orb', '0'); orbPapar(); toast('Butang AI disorok. Tunjuk semula di halaman Tanya AI.'); break;
+      case 'orbTunjuk': ls('bfx_orb', null); orbPapar(); toast('Butang AI dipaparkan semula'); break;
+      case 'chatPadam': chatPadam(); break;
       case 'pin9Tutup': ss('bfx_pin9_n', '1'); cadPin(); break;
       case 'lajuMula': lajuMula(); break;
       case 'zTutup': el('mZ').className = 'modal'; break;
@@ -808,7 +848,22 @@
   Object.keys(ZON).forEach(function (n) { ZON[n].forEach(function (z) { ZNAMA[z[0]] = [n, z[1]]; }); });
   var ASRAMA = 'NGS01', LIMA = ['Subuh', 'Zohor', 'Asar', 'Maghrib', 'Isyak'];
   var HIJRI = ['Muharram', 'Safar', 'Rabiulawal', 'Rabiulakhir', 'Jamadilawal', 'Jamadilakhir', 'Rejab', 'Syaaban', 'Ramadan', 'Syawal', 'Zulkaedah', 'Zulhijjah'];
-  function zonKini() { var z = ls('bfx_zon'); return ZNAMA[z] ? z : ASRAMA; }
+  var ASRAMA_LOK = { nama: 'Pekan Gemencheh', lat: 2.5331, lon: 102.3989 };
+  // Lokasi pilihan (disimpan dalam phone SAHAJA, tiada GPS): tempat dari carian {nama, negeri, lat, lon} ATAU zon JAKIM dari senarai.
+  // Default & "Kembali ke Asrama" = Pekan Gemencheh.
+  function lokKini() {
+    try { var t = JSON.parse(ls('bfx_tempat') || 'null'); if (t && isFinite(t.lat) && isFinite(t.lon)) return t; } catch (e) {}
+    var z = ls('bfx_zon'); return ZNAMA[z] ? { zon: z, nama: zonPendek(z) } : ASRAMA_LOK;
+  }
+  function lokKey(o) { o = o || lokKini(); return o.zon ? o.zon : 'L' + (+o.lat).toFixed(2) + '_' + (+o.lon).toFixed(2); }
+  function lokReq(o, a) { o = o || lokKini(); var r = o.zon ? { zon: o.zon } : { lat: o.lat, lon: o.lon, nama: o.nama, negeri: o.negeri || '' }; if (a) r.a = a; return r; }
+  function zonKini() { var o = lokKini(); return o.zon || (CS && CS.s && CS.s.kod) || ASRAMA; }
+  // ID rawak peranti untuk perbualan tetamu (bukan data peribadi)
+  function cidKini() {
+    var c = ls('bfx_cid');
+    if (!/^[a-f0-9]{24}$/.test(c || '')) { var b = new Uint8Array(12); (window.crypto || window.msCrypto).getRandomValues(b); c = Array.prototype.map.call(b, function (x) { return ('0' + x.toString(16)).slice(-2); }).join(''); ls('bfx_cid', c); }
+    return c;
+  }
   function zonPendek(z) { var n = ZNAMA[z]; return /^Seluruh Negeri/.test(n[1]) ? n[0] : n[1].split(', ').slice(0, 2).join(', '); }
   function dua(n) { return (n < 10 ? '0' : '') + n; }
   function myt() { return new Date(Date.now() + 8 * 3600e3); }
@@ -821,12 +876,12 @@
   // Muat solat & cuaca SATU zon. Cache phone dipapar serta-merta; tiada cache = rangka "Memuatkan…".
   // Respons lama (zon lain / permintaan lama) diabaikan. Tamat masa 15s, cuba semula sekali automatik.
   var CSQ = 0, CSM = false, CSJ = {};
-  function ambilCS(z, cb) { // satu permintaan setiap zon pada satu masa; respons diberi kepada semua yang menunggu
+  function ambilCS(z, rq, cb) { // satu permintaan setiap lokasi pada satu masa; respons diberi kepada semua yang menunggu
     if (CSJ[z]) { CSJ[z].push(cb); return; }
     CSJ[z] = [cb];
     var siap = function (o) { var L = CSJ[z] || []; delete CSJ[z]; L.forEach(function (f) { f(o); }); };
     var cuba = function (n) {
-      api({ a: 'cuaca', zon: z }, function (r) {
+      api(rq, function (r) {
         var adaC = r.ok && r.cuaca && r.cuaca.ok, adaS = r.ok && r.solat && r.solat.ok;
         if (!adaC && !adaS && n < 1) { cuba(n + 1); return; } // cuba semula sekali sebelum papar gagal
         var o = csBaca(z) || {}, now = Date.now();
@@ -840,23 +895,22 @@
     cuba(0);
   }
   function muatCS(paksa) {
-    var z = zonKini(), lama = csBaca(z), sq = ++CSQ;
-    teks(el('zonN'), zonPendek(z)); teks(el('zonN2'), zonPendek(z));
+    var L = lokKini(), z = lokKey(L), lama = csBaca(z), sq = ++CSQ;
+    teks(el('zonN'), L.nama); teks(el('zonN2'), L.nama);
     var segar = lama && lama.c && lama.s && Date.now() - lama.c.t < 15 * 60e3 && lama.s.tarikh === hariIni();
     CSM = !(segar && !paksa);
     CS = lama; paparCS();
     if (!CSM) { muatHujan(); return; }
     muatHujan();
-    ambilCS(z, function (o) {
-      if (sq !== CSQ || z !== zonKini()) return; // abaikan respons yang bukan zon semasa
+    ambilCS(z, lokReq(L, 'cuaca'), function (o) {
+      if (sq !== CSQ || z !== lokKey()) return; // abaikan respons yang bukan lokasi semasa
       CSM = false; CS = o; paparCS();
-      if (PETA && !el('pHujan').hidden && o.c && o.c.lat) PETA.setView([o.c.lat, o.c.lon], PETA.getZoom());
     });
   }
   // Prefetch zon asrama (NGS01) semasa app dibuka supaya "Kembali ke Asrama" terus ada data
   function prefetchAsrama() {
-    var o = csBaca(ASRAMA);
-    if (zonKini() !== ASRAMA && !(o && o.c && Date.now() - o.c.t < 15 * 60e3 && o.s && o.s.tarikh === hariIni())) ambilCS(ASRAMA, function () {});
+    var k = lokKey(ASRAMA_LOK), o = csBaca(k);
+    if (lokKey() !== k && !(o && o.c && Date.now() - o.c.t < 15 * 60e3 && o.s && o.s.tarikh === hariIni())) ambilCS(k, lokReq(ASRAMA_LOK, 'cuaca'), function () {});
   }
   function rangka(id, n) { var e = el(id); e.textContent = ''; for (var i = 0; i < n; i++) { var s = document.createElement('span'); s.className = 'sk'; e.appendChild(s); } }
   function paparCS() { kekal(paparCS_); }
@@ -884,6 +938,7 @@
       teks(el('sHijri'), h ? (+h[3]) + ' ' + HIJRI[+h[2] - 1] + ' ' + h[1] + 'H' : '');
     } else if (CSM) { rangka('sWaktu', 5); teks(el('sNext'), 'Memuatkan…'); teks(el('sHijri'), ''); }
     else { teks(el('sNext'), '-'); teks(el('sHijri'), ''); }
+    teks(el('sZon'), s && s.kod ? 'Zon JAKIM ' + s.kod : '');
     upd('sUpd', s, o.gagal);
     // cuaca
     var A = el('cAmaran'), R = el('cRamal'), J = el('cJam'); A.textContent = ''; J.textContent = '';
@@ -893,7 +948,7 @@
       su.textContent = c.suhu !== undefined && c.suhu !== null ? c.suhu + '°' : c.min + '–' + c.max + '°';
       var sm = document.createElement('small'); sm.textContent = 'C'; su.appendChild(sm);
       teks(el('cDesc'), c.desc + (c.bila && !/tiada/i.test(c.desc) ? ' (' + String(c.bila).toLowerCase() + ')' : ''));
-      var p = [c.lokasi || ''];
+      var p = [c.kini && c.kini !== c.desc ? 'Kini ' + String(c.kini).toLowerCase() : ''];
       if (c.min !== undefined && c.max !== undefined && c.suhu !== undefined) p.push(c.min + '–' + c.max + '°C');
       if (typeof c.lembap === 'number' && !c.owm) p.push('Lembap ' + c.lembap + '%');
       teks(el('cHujan'), p.filter(Boolean).join(' · '));
@@ -902,8 +957,7 @@
       R.hidden = !c.ramal; teks(R, c.ramal ? '🕒 ' + c.ramal : '');
       (c.jam || []).forEach(function (x) { var d = document.createElement('span'), h = x.h % 12 || 12; d.innerHTML = '<small></small><i></i><b></b>'; teks(d.firstChild, h + (x.h < 12 ? 'pg' : 'ptg')); d.children[1].innerHTML = IC['w_' + x.ik] || IC.w_awan; teks(d.lastChild, x.t + '°'); J.appendChild(d); });
       var O = el('cOw'); O.hidden = !c.owm || c.suhu === undefined;
-      if (c.owm) { teks(el('owA'), c.angin !== undefined ? c.angin + ' km/j' : '–'); teks(el('owAL'), 'Angin' + (c.degAngin !== undefined ? ' ' + '↓↙←↖↑↗→↘'.charAt(Math.round((((c.degAngin % 360) + 360) % 360) / 45) % 8) : '')); el('owA').parentNode.title = c.arahAngin ? 'Angin dari arah ' + c.arahAngin : ''; teks(el('owC'), c.awan !== undefined ? c.awan + '%' : '–'); teks(el('owH'), typeof c.peluang === 'number' ? c.peluang + '%' : (c.hujanMm ? c.hujanMm + ' mm' : '0 mm')); teks(el('owL'), c.lembap !== undefined ? c.lembap + '%' : '–'); }
-      el('cOwk').hidden = !c.owm;
+      if (c.owm) { teks(el('owA'), c.angin !== undefined ? c.angin + ' km/j' : '–'); teks(el('owAL'), 'Angin' + (c.degAngin !== undefined ? ' ' + '↓↙←↖↑↗→↘'.charAt(Math.round((((c.degAngin % 360) + 360) % 360) / 45) % 8) : '')); el('owA').parentNode.title = c.arahAngin ? 'Angin dari arah ' + c.arahAngin : ''; teks(el('owT'), c.terasa !== undefined ? c.terasa + '°C' : '–'); teks(el('owH'), typeof c.peluang === 'number' ? c.peluang + '%' : (c.hujanMm ? c.hujanMm + ' mm' : '0 mm')); teks(el('owL'), c.lembap !== undefined ? c.lembap + '%' : '–'); }
     } else {
       el('cIk').innerHTML = ''; teks(el('cSuhu'), CSM ? '' : '-'); teks(el('cDesc'), CSM ? 'Memuatkan…' : '-'); teks(el('cHujan'), ''); A.hidden = true; R.hidden = true;
       if (CSM) rangka('cJam', 6);
@@ -923,14 +977,14 @@
   // ---------- Ramalan pintar hujan (Apps Script: skor peraturan tetap + ayat Gemini) ----------
   var HJQ = 0;
   function muatHujan() {
-    var z = zonKini(), q = ++HJQ, H = el('hjn'), o = null;
+    var z = lokKey(), q = ++HJQ, H = el('hjn'), o = null;
     try { o = JSON.parse(ls('bfx_hj_' + z) || 'null'); } catch (e) {}
     H.hidden = false;
     var segar = o && Date.now() - o.masa < 14 * 60e3;
     if (o) paparHujan(o, !segar); else { el('hjI').innerHTML = IC.w_awan; teks(el('hjT'), 'Menganalisis peluang hujan…'); teks(el('hjS'), 'Anggaran AI, bukan ramalan rasmi'); }
     if (segar) return;
-    api({ a: 'hujan', zon: z }, function (r) {
-      if (q !== HJQ || z !== zonKini()) return; // abaikan zon lama
+    api(lokReq(null, 'hujan'), function (r) {
+      if (q !== HJQ || z !== lokKey()) return; // abaikan lokasi lama
       if (r.ok && r.ayat) { ls('bfx_hj_' + z, JSON.stringify(r)); kekal(function () { paparHujan(r); }); }
       else if (!o) H.hidden = true;
     }, 30000);
@@ -940,40 +994,6 @@
     el('hjI').innerHTML = IC['w_' + o.ikon] || IC.w_awan;
     teks(el('hjT'), o.ayat);
     teks(el('hjS'), (lama ? 'Mengemas kini… · ' : 'Dikemas kini ' + jam(o.masa) + ' · ') + 'Anggaran AI, bukan ramalan rasmi');
-  }
-  // ---------- Peta Hujan (Leaflet + OpenStreetMap; lapisan OpenWeather melalui proksi Apps Script) ----------
-  var PETA = null, LAPIS = null;
-  function muatLeaflet(cb) {
-    if (window.L) { cb(); return; }
-    var c = document.createElement('link'); c.rel = 'stylesheet'; c.href = 'leaflet.css'; document.head.appendChild(c);
-    var j = document.createElement('script'); j.src = 'leaflet.js'; j.onload = cb; j.onerror = function () { teks(el('pHB'), 'Peta gagal dimuat. Cuba lagi.'); }; document.head.appendChild(j);
-  }
-  function petaHujan() {
-    var P = el('pHujan');
-    if (!P.hidden) { P.hidden = true; teks(el('pHB'), '🗺️ Peta Hujan'); return; }
-    P.hidden = false; teks(el('pHB'), 'Tutup Peta Hujan');
-    muatLeaflet(function () {
-      var c = (CS && CS.c) || {}, la = c.lat || 2.53, lo = c.lon || 102.4;
-      if (!PETA) {
-        PETA = L.map('pMap', { zoomControl: true, attributionControl: false, minZoom: 5, maxZoom: 10, maxBounds: [[-2, 95], [10, 122]] }).setView([la, lo], 8);
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 10, referrerPolicy: 'strict-origin-when-cross-origin' }).addTo(PETA);
-        L.circleMarker([la, lo], { radius: 6, color: '#ff6a00', weight: 2, fillColor: '#ff6a00', fillOpacity: .9 }).addTo(PETA);
-      } else PETA.setView([la, lo], PETA.getZoom());
-      tukarLapis(qa('#pHL button.on')[0].getAttribute('data-lapis'));
-      setTimeout(function () { PETA.invalidateSize(); kanta(); }, 80);
-    });
-  }
-  var LapisOW = null;
-  function tukarLapis(l) {
-    if (!PETA) return;
-    if (!LapisOW) LapisOW = L.GridLayer.extend({ createTile: function (k, done) {
-      var img = document.createElement('img'); img.alt = ''; img.className = 'owt';
-      api({ a: 'tile', l: this.options.l, z: k.z, x: k.x, y: k.y }, function (r) { if (r.ok && r.b64) img.src = 'data:image/png;base64,' + r.b64; done(null, img); }, 20000);
-      return img;
-    } });
-    if (LAPIS) PETA.removeLayer(LAPIS);
-    LAPIS = new LapisOW({ l: l, opacity: .85, minZoom: 5, maxZoom: 10, maxNativeZoom: 10, keepBuffer: 0 }).addTo(PETA);
-    qa('#pHL button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-lapis') === l); }); kanta();
   }
   // Kemas kini DOM tanpa mengubah kedudukan skrol (elak skrol "melompat" semasa info/akaun/cuaca dikemas kini)
   function kekal(fn) {
@@ -989,7 +1009,9 @@
     var z = zonKini(), N = el('zNeg');
     if (!N.options.length) Object.keys(ZON).forEach(function (n) { var o = document.createElement('option'); o.value = n; o.textContent = n; N.appendChild(o); });
     N.value = ZNAMA[z][0]; isiZon(z);
+    el('zCari').value = ''; el('zHasil').textContent = '';
     el('mZ').className = 'modal on';
+    tsSedia(function (a) { if (a) tsPasang('tsZ'); });
   }
   function isiZon(pilih) {
     var Z = el('zZon'); Z.textContent = '';
@@ -997,11 +1019,41 @@
     if (pilih && ZNAMA[pilih] && ZNAMA[pilih][0] === el('zNeg').value) Z.value = pilih;
   }
   function simpanZon(z) {
+    ls('bfx_tempat', null);
     if (z && z !== ASRAMA) ls('bfx_zon', z); else ls('bfx_zon', null);
-    el('mZ').className = 'modal'; toast('📍 ' + zonPendek(zonKini()));
+    el('mZ').className = 'modal'; toast('📍 ' + lokKini().nama);
     muatCS(true);
   }
   el('zNeg').addEventListener('change', function () { isiZon(); });
+  // Cari pekan / kampung (OpenWeather Geocoding melalui Apps Script). Turnstile disahkan sekali sejam di server.
+  var CARI_T = 0, CARI_Q = 0, HASIL = [];
+  function cariTempat(q) {
+    var H = el('zHasil'); q = String(q || '').trim();
+    if (q.length < 3) { H.textContent = ''; return; }
+    var n = ++CARI_Q, rq = { a: 'cari', q: q, cid: cidKini() };
+    H.className = 'zhasil muat'; teks(H, 'Mencari…');
+    var siap = function (r) {
+      if (n !== CARI_Q) return;
+      H.className = 'zhasil'; H.textContent = '';
+      if (!r.ok) { teks(H, r.msg || 'Carian gagal. Cuba lagi.'); return; }
+      ss('bfx_tsz', String(Date.now()));
+      HASIL = r.hasil || [];
+      if (!HASIL.length) { teks(H, 'Tiada tempat dijumpai. Cuba ejaan lain, atau pilih zon JAKIM di bawah.'); return; }
+      HASIL.forEach(function (x, i) {
+        var b = document.createElement('button'), t = document.createElement('b'), m = document.createElement('small');
+        b.type = 'button'; b.setAttribute('data-tempat', i); t.textContent = '📍 ' + x.nama; m.textContent = x.negeri || 'Malaysia';
+        b.appendChild(t); b.appendChild(m); H.appendChild(b);
+      });
+    };
+    if (Date.now() - (+ss('bfx_tsz') || 0) < 50 * 60e3) api(rq, function (r) { if (r.ts) apiTs('tsZ', rq, siap); else siap(r); }, 20000);
+    else apiTs('tsZ', rq, siap, 20000);
+  }
+  el('zCari').addEventListener('input', function () { var v = this.value; clearTimeout(CARI_T); CARI_T = setTimeout(function () { cariTempat(v); }, 600); });
+  function pilihTempat(i) {
+    var x = HASIL[i]; if (!x) return;
+    ls('bfx_tempat', JSON.stringify({ nama: x.nama, negeri: x.negeri || '', lat: x.lat, lon: x.lon })); ls('bfx_zon', null);
+    el('mZ').className = 'modal'; toast('📍 ' + x.nama); muatCS(true);
+  }
   setInterval(function () { if (CS) { if (CS.s && CS.s.tarikh !== hariIni()) muatCS(true); else paparCS(); } }, 30000); // kiraan masa setiap minit
   setInterval(function () { if (AK && !document.hidden) muatCS(true); }, 15 * 60e3); // cuaca setiap 15 minit
   document.addEventListener('visibilitychange', function () {
@@ -1036,14 +1088,15 @@
       // Log masuk kekal: terus ke dashboard (data terakhir dalam phone), kemudian segarkan dari server
       TOK = t;
       var ak0 = null; try { ak0 = JSON.parse(ls('bfx_ak') || 'null'); } catch (e) {}
-      if (ak0) { setAk(ak0); tunjukDash(); } else el('muat').className = 'muat on';
+      var keAI = q.get('src') === 'ai'; // dari maskot portal: terus ke Tanya AI
+      if (ak0) { setAk(ak0); tunjukDash(); if (keAI) go('ai'); } else el('muat').className = 'muat on';
       api({ a: 'akaun' }, function (r) {
         el('muat').className = 'muat';
-        if (r.ok) { setAk(r.akaun); if (!ak0) tunjukDash(); if (bayar) tungguBayaran(bayar); else autoWifi(r.akaun); return; }
+        if (r.ok) { setAk(r.akaun); if (!ak0) { tunjukDash(); if (keAI) go('ai'); } if (bayar) tungguBayaran(bayar); else autoWifi(r.akaun); return; }
         if (r.keluar || !TOK) { el('vDash').className = 'view'; el('vAuth').className = 'view on'; return; }
         if (!ak0) { el('vAuth').className = 'view on'; toast(r.msg || 'Tiada sambungan. Cuba lagi.'); }
       });
-    } else { el('vAuth').className = 'view on'; api({ a: 'info' }, function () {}); }
+    } else { el('vAuth').className = 'view on'; api({ a: 'info' }, function () {}); if (q.get('src') === 'ai') setTimeout(bukaAITetamu, 300); }
     tsAwal();
     setTimeout(autoPasang, 2500);
     setInterval(function () { api({ a: 'info' }, function () {}); }, 60000);

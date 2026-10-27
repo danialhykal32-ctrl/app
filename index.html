@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://speed.cloudflare.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; media-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://speed.cloudflare.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; media-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="referrer" content="no-referrer">
-<meta name="theme-color" content="#0b0614">
+<meta name="theme-color" content="#120a24">
 <meta name="color-scheme" content="dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -13,8 +13,9 @@
 <meta name="apple-mobile-web-app-title" content="BlackFox">
 <title>BlackFox WiFi</title>
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="bfc180.png">
-<link rel="icon" href="bfc180.png">
+<link rel="apple-touch-icon" href="ikon-180.png">
+<link rel="icon" type="image/svg+xml" href="ikon.svg">
+<link rel="icon" type="image/png" sizes="192x192" href="ikon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap">
 <link rel="stylesheet" href="app.css">
@@ -66,6 +67,10 @@
       <div class="frost"></div>
     </div>
   </div>
+  <button class="maskot" type="button" data-act="maskotAI" aria-label="Tanya BlackFox AI">
+    <span class="mkb"><img src="maskot.svg" alt="" width="64" height="64"></span>
+    <span class="mkg" id="mkGel" aria-live="polite">Lupa PIN? Saya boleh bantu</span>
+  </button>
   <p class="ft">&copy; BlackFoxCyber &middot; Secure Dorm Network</p>
 </section>
 
@@ -147,26 +152,20 @@
         </div>
         <div class="row4">
               <div class="card a c-solat">
-                <div class="ch"><h3>🕌 Waktu Solat</h3><button class="zonb" data-act="zon" id="zonB" aria-label="Tukar zon">📍 <span id="zonN">Tampin, Jempol</span> ▾</button></div>
+                <div class="ch"><h3>🕌 Waktu Solat</h3><button class="zonb" data-act="zon" id="zonB" aria-label="Tukar lokasi">📍 <span id="zonN">Pekan Gemencheh</span> ▾</button></div>
                 <div class="snx"><b id="sNext">-</b><small id="sHijri"></small></div>
                 <div class="swk" id="sWaktu"></div>
+                <small class="kredit" id="sZon"></small>
                 <small class="upd" id="sUpd"></small>
               </div>
               <div class="card a c-cuaca">
-                <div class="ch"><h3>🌦️ Cuaca</h3><button class="zonb" data-act="zon" id="zonB2" aria-label="Tukar zon">📍 <span id="zonN2">Tampin, Jempol</span> ▾</button></div>
+                <div class="ch"><h3>🌦️ Cuaca</h3><button class="zonb" data-act="zon" id="zonB2" aria-label="Tukar lokasi">📍 <span id="zonN2">Pekan Gemencheh</span> ▾</button></div>
                 <div class="hjn" id="hjn" hidden><span class="hji" id="hjI"></span><div><b id="hjT">Menganalisis peluang hujan…</b><small id="hjS">Anggaran AI, bukan ramalan rasmi</small></div></div>
                 <div class="camr" id="cAmaran" role="alert" hidden></div>
                 <div class="cnow"><span class="cic" id="cIk"></span><b id="cSuhu">-</b><div class="cdt"><p id="cDesc">-</p><small id="cHujan"></small></div></div>
                 <p class="cram" id="cRamal" hidden></p>
                 <div class="cjam" id="cJam"></div>
-                <div class="cow" id="cOw" hidden><span><small id="owAL">Angin</small><b id="owA">–</b></span><span><small>Awan</small><b id="owC">–</b></span><span><small>Hujan</small><b id="owH">–</b></span><span><small>Lembap</small><b id="owL">–</b></span></div>
-                <button class="lg sm full" data-act="petaHujan" id="pHB">🗺️ Peta Hujan</button>
-                <div class="phj" id="pHujan" hidden>
-                  <div class="seg phl" id="pHL"><span class="knob"></span><button class="on" data-lapis="precipitation_new">Hujan</button><button data-lapis="clouds_new">Awan</button><button data-lapis="wind_new">Angin</button></div>
-                  <div class="pmap" id="pMap"></div>
-                  <small class="kredit">Peta © OpenStreetMap contributors · Weather data © OpenWeather</small>
-                </div>
-                <small class="kredit" id="cOwk" hidden>Weather data © OpenWeather</small>
+                <div class="cow" id="cOw" hidden><span><small>Terasa</small><b id="owT">–</b></span><span><small id="owAL">Angin</small><b id="owA">–</b></span><span><small>Hujan</small><b id="owH">–</b></span><span><small>Lembap</small><b id="owL">–</b></span></div>
                 <small class="upd" id="cUpd"></small>
               </div>
             </div>
@@ -246,11 +245,12 @@
 
       <!-- TANYA AI -->
       <div class="page" id="pg-ai">
-        <div class="ph"><div><h1 class="wr">Tanya AI</h1><p>BlackFox AI sedia membantu 24 jam: kuota, PIN, sambungan dan bayaran.</p></div></div>
+        <div class="ph"><div><h1 class="wr">Tanya AI</h1><p>BlackFox AI sedia membantu 24 jam: WiFi, PIN, bayaran, pelajaran, bahasa, sains, cuaca &amp; solat.</p></div></div>
         <div class="sv">
           <div class="card a chat">
+            <div class="chb"><small class="baki" id="aiBaki" hidden></small><span class="sp"></span><button class="lk" type="button" data-act="orbTunjuk" id="orbTunjuk" hidden>Tunjuk butang AI</button><button class="lk" type="button" data-act="chatPadam" id="chatPadamB" hidden>Padam sejarah</button></div>
             <div class="log" id="log"></div>
-            <div class="qk" id="qk"><button>Kenapa internet saya lambat?</button><button>Saya lupa PIN</button><button>Macam mana nak tambah kuota?</button><button>Kenapa asyik diminta log masuk?</button><button>Apa manfaat sambung Telegram?</button></div>
+            <div class="qk" id="qk"><button>Kenapa internet saya lambat?</button><button>Saya lupa PIN</button><button>Macam mana nak tambah kuota?</button><button>Kenapa asyik diminta log masuk?</button><button>Apa manfaat sambung Telegram?</button><button>Terangkan kitaran air dengan ringkas</button></div>
             <div class="ts" id="tsC"></div>
             <form class="cin" data-form="chat"><input id="cq" placeholder="Tanya apa sahaja..." autocomplete="off"><button class="send" type="submit" aria-label="Hantar"><i data-ic="arrowu"></i></button></form>
           </div>
@@ -366,7 +366,7 @@
 </div>
 <!-- Pasang app: Android/laptop (beforeinstallprompt) -->
 <div class="sheet" id="sA" role="dialog" aria-labelledby="sAT">
-  <div class="row"><img src="bfc180.png" alt=""><div><h3 id="sAT">Pasang BlackFox App?</h3><p id="sAP">Buka terus dari skrin utama, penuh skrin, tanpa browser.</p></div></div>
+  <div class="row"><img src="ikon-180.png" alt=""><div><h3 id="sAT">Pasang BlackFox App?</h3><p id="sAP">Buka terus dari skrin utama, penuh skrin, tanpa browser.</p></div></div>
   <p class="sAx" id="sAx" hidden><a href="#" data-act="ikonTiada">Ikon tak keluar?</a></p>
   <div class="btns" id="sAB"><button data-act="aNanti">Nanti</button><button class="pri" data-act="aPasang">Pasang</button></div>
 </div>
@@ -374,19 +374,25 @@
 <div class="modal" id="mP" role="dialog" aria-modal="true" aria-labelledby="mPT">
   <div class="mbox">
     <button class="mx" data-act="pTutup" aria-label="Tutup">&times;</button>
-    <div class="row"><img src="bfc180.png" alt=""><div><h3 id="mPT">Pasang BlackFox App</h3><p id="mPS"></p></div></div>
+    <div class="row"><img src="ikon-180.png" alt=""><div><h3 id="mPT">Pasang BlackFox App</h3><p id="mPS"></p></div></div>
     <div class="vid" id="mPV" hidden><video id="pVid" muted autoplay loop playsinline disablepictureinpicture preload="none" poster="pasang-ios.jpg"></video></div>
     <ol id="mPL"></ol>
     <p class="mnote" id="mPN" hidden></p>
     <div class="btns" id="mPB"></div>
   </div>
 </div>
-<!-- Pilih zon waktu solat (disimpan dalam phone sahaja) -->
+<!-- Butang AI orb (selepas log masuk; boleh disorok) -->
+<div class="orb" id="aiOrb" hidden><button class="orbb" type="button" data-act="askAI" aria-label="Tanya BlackFox AI"><img src="maskot.svg" alt=""></button><button class="orbx" type="button" data-act="orbSorok" aria-label="Sorok butang AI">&times;</button></div>
+<!-- Pilih lokasi waktu solat & cuaca (disimpan dalam phone sahaja) -->
 <div class="modal" id="mZ" role="dialog" aria-modal="true" aria-labelledby="mZT">
   <div class="mbox">
     <button class="mx" data-act="zTutup" aria-label="Tutup">&times;</button>
-    <h3 id="mZT">📍 Pilih Zon</h3>
-    <p class="mnote">Zon JAKIM untuk waktu solat &amp; cuaca. Disimpan dalam phone ini sahaja, tidak dihantar ke server. Tiada GPS.</p>
+    <h3 id="mZT">📍 Pilih lokasi</h3>
+    <p class="mnote">Lokasi disimpan dalam phone ini sahaja. Tiada GPS.</p>
+    <label class="fld zcari"><span class="zci">🔎</span><input class="in" id="zCari" type="search" placeholder="Cari pekan atau kampung… (cth. Gemencheh)" autocomplete="off" enterkeyhint="search"></label>
+    <div class="zhasil" id="zHasil" aria-live="polite"></div>
+    <div class="ts" id="tsZ"></div>
+    <p class="zatau"><span>atau pilih zon JAKIM</span></p>
     <label class="sel"><span>Negeri</span><select id="zNeg"></select></label>
     <label class="sel"><span>Zon</span><select id="zZon"></select></label>
     <div class="btns"><button data-act="zAsrama">Kembali ke Asrama</button><button class="pri" data-act="zSimpan">Simpan</button></div>

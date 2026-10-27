@@ -1,0 +1,5 @@
+name: Konfigurasi CodeQL BlackFox (app)
+# speedtest.js (@cloudflare/speedtest) & leaflet.js ialah salinan pustaka pihak ketiga, tidak dianalisis.
+paths-ignore:
+  - speedtest.js
+  - leaflet.js

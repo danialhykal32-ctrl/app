@@ -84,7 +84,8 @@
   }
 
   // ---------- talian / notis ----------
-  function setInfo(i) {
+  function setInfo(i) { kekal(function () { setInfo_(i); }); }
+  function setInfo_(i) {
     INFO = i;
     qa('[data-line]').forEach(function (l) { l.className = 'line' + (i.up ? '' : ' down'); teks(l.querySelector('span'), i.up ? 'Online' : 'Gangguan'); });
     qa('[data-alert]').forEach(function (a) {
@@ -101,6 +102,43 @@
     if (AK) { promo(AK); notif(); }
   }
 
+  // ---------- Cloudflare Turnstile (log masuk, daftar, Tanya AI, resit, tukar PIN) ----------
+  // Token disahkan di Apps Script (TS_SECRET). Widget "interaction-only": biasanya tidak kelihatan.
+  var TS_KEY = '0x4AAAAAAFncewUhq8-M-PLN', TSW = {}, TST = {};
+  function tsSedia(cb, n) { if (window.turnstile && turnstile.render) cb(true); else if ((n || 0) > 40) cb(false); else setTimeout(function () { tsSedia(cb, (n || 0) + 1); }, 100); }
+  function tsPasang(id) {
+    if (TSW[id] !== undefined || !el(id) || !window.turnstile) return;
+    try {
+      TSW[id] = turnstile.render('#' + id, { sitekey: TS_KEY, appearance: 'interaction-only', theme: 'dark', size: 'flexible', language: 'ms',
+        callback: function (t) { TST[id] = t; }, 'expired-callback': function () { TST[id] = ''; }, 'error-callback': function () { TST[id] = ''; return true; } });
+    } catch (e) {}
+  }
+  // Dapatkan token (tunggu sehingga 12s). Skrip Turnstile gagal dimuat -> '' (server langkau jika TS_SECRET tiada).
+  function tsToken(id, cb) {
+    tsSedia(function (ada) {
+      if (!ada) { cb(''); return; }
+      tsPasang(id);
+      var t0 = Date.now(), cuba = function () {
+        var t = TST[id] || (TSW[id] !== undefined ? turnstile.getResponse(TSW[id]) : '');
+        if (t || Date.now() - t0 > 12000) cb(t || ''); else setTimeout(cuba, 150);
+      };
+      cuba();
+    });
+  }
+  function tsReset(id) { TST[id] = ''; try { if (window.turnstile && TSW[id] !== undefined) turnstile.reset(TSW[id]); } catch (e) {} }
+  // api + token Turnstile: jika server tolak token (r.ts), set semula widget dan cuba sekali lagi
+  function apiTs(id, req, cb, ms, n) {
+    tsToken(id, function (t) {
+      req.ts = t;
+      api(req, function (r) {
+        tsReset(id);
+        if (r.ts && !n) { apiTs(id, req, cb, ms, 1); return; }
+        cb(r);
+      }, ms);
+    });
+  }
+  function tsAwal() { tsSedia(function (ada) { if (ada) ['tsL', 'tsD'].forEach(tsPasang); }); }
+
   // ---------- log masuk / daftar (V2) ----------
   function tab(i) {
     var a = el('auth'); if (a.getAttribute('data-b')) return; a.setAttribute('data-b', '1');
@@ -112,13 +150,13 @@
     var m = el('lm').value.trim(), p = el('lp').value.replace(/\s+/g, '');
     if (!m || !p) { el('lmsg').textContent = 'Isi No. Kad Matrik & PIN.'; return; }
     el('lmsg').textContent = 'Menyemak…';
-    api({ a: 'login', m: m, pin: p }, function (r) { if (!r.ok) { el('lmsg').textContent = r.msg || 'Gagal.'; return; } el('lmsg').textContent = ''; masukOk(r); });
+    apiTs('tsL', { a: 'login', m: m, pin: p }, function (r) { if (!r.ok) { el('lmsg').textContent = r.msg || 'Gagal.'; return; } el('lmsg').textContent = ''; ls('bfx_pin9', r.pin9 ? '1' : null); masukOk(r); });
   }
   function daftar() {
     var n = el('dn').value, m = el('dm').value, p = el('dp').value;
-    if (!/^[0-9]{9}$/.test(p)) { el('dmsg').textContent = 'PIN mesti tepat 9 digit nombor.'; return; }
+    if (!/^[0-9]{6}$/.test(p)) { el('dmsg').textContent = 'PIN mesti tepat 6 digit nombor.'; return; }
     el('dmsg').textContent = 'Mendaftar…';
-    api({ a: 'daftar', n: n, m: m, pin: p }, function (r) { if (!r.ok) { el('dmsg').textContent = r.msg || 'Gagal.'; return; } el('dmsg').textContent = ''; toast('Akaun didaftarkan'); masukOk(r); if (!r.akaun.ada) go('pakej'); });
+    apiTs('tsD', { a: 'daftar', n: n, m: m, pin: p }, function (r) { if (!r.ok) { el('dmsg').textContent = r.msg || 'Gagal.'; return; } el('dmsg').textContent = ''; toast('Akaun didaftarkan'); masukOk(r); if (!r.akaun.ada) go('pakej'); });
   }
   function masukOk(r) { TOK = r.token; ls('bfx_t', TOK); document.body.classList.remove('tetamu'); setAk(r.akaun); tunjukDash(); }
   function tunjukDash() {
@@ -164,6 +202,9 @@
       if (pg === 'profil') muatProfil();
       if (pg === 'ai') mulaChat();
       if (pg === 'laju') lajuSedia();
+      if (pg === 'pin') tsSedia(function (a) { if (a) tsPasang('tsP'); });
+      if (pg === 'pakej') tsSedia(function (a) { if (a) tsPasang('tsR'); });
+      if (pg === 'ai') tsSedia(function (a) { if (a) tsPasang('tsC'); });
     };
     if (lama && lama.classList.contains('on')) { lama.className = 'page keluar'; setTimeout(tunjuk, 210); } else tunjuk();
   }
@@ -197,13 +238,14 @@
 
   // ---------- data akaun ----------
   function salamMasa() { var h = new Date(Date.now() + 8 * 3600e3).getUTCHours(); return h < 12 ? 'Selamat pagi' : h < 14 ? 'Selamat tengah hari' : h < 19 ? 'Selamat petang' : 'Selamat malam'; }
-  function setAk(a) {
+  function setAk(a) { kekal(function () { setAk_(a); }); cadPin(); }
+  function setAk_(a) {
     AK = a; ls('bfx_ak', JSON.stringify(a));
     var nama = String(a.nama || a.m), depan = nama.split(' ')[0], hari = hariLagi(a), pt = a.kuota > 0 ? Math.max(0, Math.min(1, a.guna / a.kuota)) : 0;
     depan = depan.charAt(0).toUpperCase() + depan.slice(1).toLowerCase();
     var h = el('salam'); h.removeAttribute('data-w'); h.textContent = salamMasa() + ', ' + depan;
     teks(el('tNama'), depan); teks(el('tAva'), depan.charAt(0));
-    teks(el('bsub'), a.ada ? (a.aktif ? 'Pelan ' + a.pelan + ' aktif sehingga ' + String(a.tamat).slice(0, 10) + '. Sambung WiFi FOX ULTRA 5G dan tekan Sambung WiFi.' : 'Pelan anda telah tamat. Pilih pakej baharu untuk teruskan.') : 'Belum ada pelan. Pilih pakej atau ambil percuma 5GB untuk mula.');
+    teks(el('bsub'), a.ada ? (a.aktif ? 'Pelan ' + a.pelan + ' aktif hingga ' + String(a.tamat).slice(0, 10) + '.' : 'Pelan anda telah tamat. Pilih pakej baharu untuk teruskan.') : 'Belum ada pelan. Pilih pakej atau ambil percuma 5GB untuk mula.');
     teks(el('xp'), a.ada ? a.pelan : 'Tiada pelan');
     letak('qb', a.ada ? a.baki : 0, '<small>GB</small>');
     var c2 = el('pg2'); teks(c2, a.ada ? Math.round((1 - pt) * 100) + '% baki' : 'Baru'); c2.className = 'chip ' + (a.ada && pt < .9 ? 'ok' : 'bad');
@@ -243,7 +285,8 @@
       s.appendChild(document.createTextNode(HARI[d.getUTCDay()])); var b = document.createElement('b'); b.textContent = d.getUTCDate(); s.appendChild(b); w.appendChild(s);
     }
   }
-  function notif() {
+  function notif() { kekal(notif_); }
+  function notif_() {
     var L = [], a = AK || {}, i = INFO || {};
     if (i.notis) L.push({ j: 'notis', c: 'or', ic: 'bell', b: 'Notis BlackFox', p: i.notis, tg: 'Baru' });
     if (i.up === false) L.push({ j: 'notis', c: 'bad', ic: 'alert', b: 'Talian asrama terganggu', p: 'Sejak ' + i.sejak + '. Kuota anda tidak terjejas.', tg: 'Langsung' });
@@ -327,7 +370,7 @@
   function resit(inp) {
     var f = inp.files && inp.files[0], M = el('rsM'); inp.value = ''; if (!f) return;
     M.className = 'msg';
-    if (!/^image\//.test(f.type)) { M.textContent = 'Pilih fail gambar (screenshot resit).'; return; }
+    if (!/^image\/(jpeg|png)$/.test(f.type)) { M.textContent = 'Pilih gambar JPG atau PNG (screenshot resit).'; return; }
     M.textContent = 'Memproses gambar…';
     var rd = new FileReader();
     rd.onload = function () {
@@ -337,7 +380,7 @@
         cv.width = Math.round(im.width * s); cv.height = Math.round(im.height * s); cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height);
         var d = cv.toDataURL('image/jpeg', 0.85).split(',')[1];
         M.textContent = 'Menyemak resit dengan ToyyibPay… (sehingga 30 saat)'; el('rsB').disabled = true;
-        api({ a: 'resit', img: d, mime: 'image/jpeg' }, function (r) { el('rsB').disabled = false; M.className = 'msg' + (r.ok ? ' ok' : ''); M.textContent = r.msg || ''; if (r.akaun) setAk(r.akaun); if (r.ok && /disahkan/i.test(r.msg || '')) muatProfil(function () { if (PROF.beli[0]) cetakResit(PROF.beli[0]); }); });
+        apiTs('tsR', { a: 'resit', img: d, mime: 'image/jpeg' }, function (r) { el('rsB').disabled = false; M.className = 'msg' + (r.ok ? ' ok' : ''); M.textContent = r.msg || ''; if (r.akaun) setAk(r.akaun); if (r.ok && /disahkan/i.test(r.msg || '')) muatProfil(function () { if (PROF.beli[0]) cetakResit(PROF.beli[0]); }); });
       };
       im.onerror = function () { M.textContent = 'Gambar tidak dapat dibaca. Cuba screenshot lain.'; };
       im.src = rd.result;
@@ -348,10 +391,10 @@
   // ---------- PIN ----------
   function tukarPin() {
     var p = el('np').value, p2 = el('np2').value, M = el('pmsg'); M.className = 'msg';
-    if (!/^[0-9]{9}$/.test(p)) { M.textContent = 'PIN mesti tepat 9 digit nombor.'; return; }
+    if (!/^[0-9]{6}$/.test(p)) { M.textContent = 'PIN mesti tepat 6 digit nombor.'; return; }
     if (p !== p2) { M.textContent = 'PIN tidak sama. Taip semula.'; return; }
     M.textContent = 'Menyimpan…';
-    api({ a: 'pin', baru: p }, function (r) { M.textContent = r.msg || ''; M.className = 'msg' + (r.ok ? ' ok' : ''); if (r.ok) { el('np').value = ''; el('np2').value = ''; } });
+    apiTs('tsP', { a: 'pin', baru: p }, function (r) { M.textContent = r.msg || ''; M.className = 'msg' + (r.ok ? ' ok' : ''); if (r.ok) { el('np').value = ''; el('np2').value = ''; ls('bfx_pin9', null); cadPin(); } });
   }
 
   // ---------- Telegram: t.me terus pada klik pengguna ----------
@@ -378,10 +421,13 @@
   function hantar(q) {
     var t = q || el('cq').value; if (!t) return; el('cq').value = ''; tambah('u', t);
     var w = document.createElement('div'); w.className = 'b a'; w.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>'; el('log').appendChild(w); el('log').scrollTop = 99999;
-    api({ a: 'chat', msg: t, m: AK ? AK.m : el('lm').value, zon: zonKini() }, function (r) {
+    var rq = { a: 'chat', msg: t, m: AK ? AK.m : el('lm').value, zon: zonKini() };
+    var siap = function (r) {
       w.remove(); tambah('a', r.ok ? r.balas : (r.msg || 'Ralat'));
       if (TOK) api({ a: 'akaun' }, function (x) { if (x.ok) setAk(x.akaun); });
-    });
+    };
+    if (Date.now() - (+ss('bfx_tsc') || 0) < 50 * 60e3) api(rq, function (r) { if (r.ts) apiTs('tsC', rq, siap); else siap(r); });
+    else apiTs('tsC', rq, function (r) { if (r.ok) ss('bfx_tsc', String(Date.now())); siap(r); });
   }
 
   // ---------- Profil ----------
@@ -401,7 +447,8 @@
       paparProfil(); carta(); notif(); tgJubin(); if (cb) cb();
     });
   }
-  function paparProfil() {
+  function paparProfil() { kekal(paparProfil_); }
+  function paparProfil_() {
     var a = AK || {}, p = PROF || { beli: [], telegram: false, jumlahRm: 0, bilBeli: 0, mula: '' };
     teks(el('ptg'), p.telegram ? 'Telegram disambung' : 'Telegram belum'); teks(el('pTg2'), p.telegram ? 'Disambung ✓' : 'Belum disambung');
     letak('s4', p.bilBeli); teks(el('s4e'), 'jumlah RM' + (Number(p.jumlahRm) || 0).toFixed(2));
@@ -437,7 +484,9 @@
     for (i = 5; i >= 0; i--) { var d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1)); B.push({ k: d.getUTCFullYear() + '-' + d.getUTCMonth(), n: BULAN[d.getUTCMonth()].slice(0, 3), rm: 0 }); }
     (PROF && PROF.beli || []).forEach(function (x) { var t = tarikh(x.w || x.t); if (!t) return; t = new Date(t.getTime() + 8 * 3600e3); var k = t.getUTCFullYear() + '-' + t.getUTCMonth(); B.forEach(function (b) { if (b.k === k) b.rm += Number(x.rm) || 0; }); });
     var mx = Math.max.apply(null, B.map(function (b) { return b.rm; }).concat([1])), jum = B.reduce(function (a, b) { return a + b.rm; }, 0);
-    teks(el('chS'), jum ? 'Jumlah 6 bulan: RM' + jum.toFixed(2) : '6 bulan terakhir · belum ada pembelian');
+    teks(el('chS'), jum ? 'Jumlah 6 bulan: RM' + jum.toFixed(2) : '6 bulan terakhir');
+    C.classList.toggle('kosong', !jum);
+    if (!jum) { var k0 = document.createElement('p'); k0.className = 'kosongp'; k0.textContent = 'Belum ada pembelian'; C.appendChild(k0); return; }
     B.forEach(function (b, k) {
       var d = document.createElement('div'), e = document.createElement('em'), bt = document.createElement('span'), sm = document.createElement('small');
       bt.className = 'bt'; e.textContent = b.rm ? 'RM' + Math.round(b.rm) : ''; sm.textContent = b.n;
@@ -506,12 +555,13 @@
 
   // ---------- peristiwa ----------
   document.addEventListener('click', function (e) {
-    var t = e.target.closest('[data-act],[data-pg],[data-beli],[data-st],[data-nt],[data-f],.qk button');
+    var t = e.target.closest('[data-act],[data-pg],[data-beli],[data-st],[data-nt],[data-f],[data-lapis],.qk button');
     if (!t) return;
     if (t.matches('.qk button')) { hantar(t.textContent); return; }
     if (t.hasAttribute('data-beli')) { e.preventDefault(); beli(t.getAttribute('data-beli')); return; }
     if (t.hasAttribute('data-st')) { STM = t.getAttribute('data-st'); statistik(); kira(document.querySelector('.c-stat')); return; }
     if (t.hasAttribute('data-nt')) { NT = t.getAttribute('data-nt'); qa('#nTabs button').forEach(function (b) { b.classList.toggle('on', b === t); }); notif(); kanta(); return; }
+    if (t.hasAttribute('data-lapis')) { tukarLapis(t.getAttribute('data-lapis')); return; }
     if (t.hasAttribute('data-f')) { tapis(t.getAttribute('data-f')); kanta(); return; }
     var act = t.getAttribute('data-act');
     if (t.hasAttribute('data-pg') && !act) { e.preventDefault(); go(t.getAttribute('data-pg')); if (t.classList.contains('ri') && matchMedia('(hover:none)').matches) tip(t, 900); return; }
@@ -543,8 +593,8 @@
       case 'salinLink': salin(linkApp(), 'Link disalin. Tampal dalam Safari / Chrome.'); break;
       case 'zon': bukaZon(); break;
       case 'csCuba': muatCS(true); break;
-      case 'windy': bukaWindy(); break;
-      case 'wTutup': tutupWindy(); break;
+      case 'petaHujan': petaHujan(); break;
+      case 'pin9Tutup': ss('bfx_pin9_n', '1'); cadPin(); break;
       case 'lajuMula': lajuMula(); break;
       case 'zTutup': el('mZ').className = 'modal'; break;
       case 'zAsrama': simpanZon(''); break;
@@ -795,10 +845,12 @@
     var segar = lama && lama.c && lama.s && Date.now() - lama.c.t < 15 * 60e3 && lama.s.tarikh === hariIni();
     CSM = !(segar && !paksa);
     CS = lama; paparCS();
-    if (!CSM) return;
+    if (!CSM) { muatHujan(); return; }
+    muatHujan();
     ambilCS(z, function (o) {
       if (sq !== CSQ || z !== zonKini()) return; // abaikan respons yang bukan zon semasa
       CSM = false; CS = o; paparCS();
+      if (PETA && !el('pHujan').hidden && o.c && o.c.lat) PETA.setView([o.c.lat, o.c.lon], PETA.getZoom());
     });
   }
   // Prefetch zon asrama (NGS01) semasa app dibuka supaya "Kembali ke Asrama" terus ada data
@@ -807,7 +859,8 @@
     if (zonKini() !== ASRAMA && !(o && o.c && Date.now() - o.c.t < 15 * 60e3 && o.s && o.s.tarikh === hariIni())) ambilCS(ASRAMA, function () {});
   }
   function rangka(id, n) { var e = el(id); e.textContent = ''; for (var i = 0; i < n; i++) { var s = document.createElement('span'); s.className = 'sk'; e.appendChild(s); } }
-  function paparCS() {
+  function paparCS() { kekal(paparCS_); }
+  function paparCS_() {
     var o = CS || {}, s = o.s, c = o.c;
     el('pg-utama').querySelector('.c-solat').classList.toggle('memuat', !s && CSM);
     el('pg-utama').querySelector('.c-cuaca').classList.toggle('memuat', !c && CSM);
@@ -842,13 +895,15 @@
       teks(el('cDesc'), c.desc + (c.bila && !/tiada/i.test(c.desc) ? ' (' + String(c.bila).toLowerCase() + ')' : ''));
       var p = [c.lokasi || ''];
       if (c.min !== undefined && c.max !== undefined && c.suhu !== undefined) p.push(c.min + '–' + c.max + '°C');
-      if (typeof c.lembap === 'number') p.push('Lembap ' + c.lembap + '%');
+      if (typeof c.lembap === 'number' && !c.owm) p.push('Lembap ' + c.lembap + '%');
       teks(el('cHujan'), p.filter(Boolean).join(' · '));
       (c.amaran || []).forEach(function (a) { var b = document.createElement('b'); b.textContent = '⚠️ ' + a.tajuk; var t = document.createElement('span'); t.textContent = a.teks; A.appendChild(b); A.appendChild(t); });
       A.hidden = !(c.amaran && c.amaran.length);
       R.hidden = !c.ramal; teks(R, c.ramal ? '🕒 ' + c.ramal : '');
       (c.jam || []).forEach(function (x) { var d = document.createElement('span'), h = x.h % 12 || 12; d.innerHTML = '<small></small><i></i><b></b>'; teks(d.firstChild, h + (x.h < 12 ? 'pg' : 'ptg')); d.children[1].innerHTML = IC['w_' + x.ik] || IC.w_awan; teks(d.lastChild, x.t + '°'); J.appendChild(d); });
-      el('cWU').href = c.wu || 'https://www.wunderground.com/';
+      var O = el('cOw'); O.hidden = !c.owm || c.suhu === undefined;
+      if (c.owm) { teks(el('owA'), c.angin !== undefined ? c.angin + ' km/j' : '–'); teks(el('owAL'), 'Angin' + (c.degAngin !== undefined ? ' ' + '↓↙←↖↑↗→↘'.charAt(Math.round((((c.degAngin % 360) + 360) % 360) / 45) % 8) : '')); el('owA').parentNode.title = c.arahAngin ? 'Angin dari arah ' + c.arahAngin : ''; teks(el('owC'), c.awan !== undefined ? c.awan + '%' : '–'); teks(el('owH'), typeof c.peluang === 'number' ? c.peluang + '%' : (c.hujanMm ? c.hujanMm + ' mm' : '0 mm')); teks(el('owL'), c.lembap !== undefined ? c.lembap + '%' : '–'); }
+      el('cOwk').hidden = !c.owm;
     } else {
       el('cIk').innerHTML = ''; teks(el('cSuhu'), CSM ? '' : '-'); teks(el('cDesc'), CSM ? 'Memuatkan…' : '-'); teks(el('cHujan'), ''); A.hidden = true; R.hidden = true;
       if (CSM) rangka('cJam', 6);
@@ -865,15 +920,71 @@
     e.className = 'upd' + (gagal && !CSM ? ' bad' : '');
     e.textContent = (CSM ? 'Mengemas kini… · ' : '') + 'Dikemas kini ' + jam(d.t) + (gagal && !CSM ? ' · data terakhir (tiada sambungan)' : '') + (d.sumber ? ' · ' + d.sumber : '') + (kredit && !/Norway/.test(d.sumber || '') ? ' · ' + kredit : '');
   }
-  // Peta Windy: iframe dimuat hanya bila dibuka, dibuang bila ditutup (jimat kuota)
-  function bukaWindy() {
-    var c = (CS && CS.c) || {}, z = ZNAMA[zonKini()], la = c.lat || 2.53, lo = c.lon || 102.4, f = document.createElement('iframe');
-    f.src = 'https://embed.windy.com/embed2.html?lat=' + la + '&lon=' + lo + '&detailLat=' + la + '&detailLon=' + lo + '&zoom=8&level=surface&overlay=rain&product=ecmwf&menu=&message=true&marker=true&calendar=now&type=map&location=coordinates&metricWind=km%2Fh&metricTemp=%C2%B0C';
-    f.title = 'Peta Windy ' + (z ? z[1] : ''); f.setAttribute('loading', 'lazy'); f.setAttribute('referrerpolicy', 'no-referrer');
-    var w = el('wFr'); w.textContent = ''; w.appendChild(f);
-    el('mW').className = 'modal on';
+  // ---------- Ramalan pintar hujan (Apps Script: skor peraturan tetap + ayat Gemini) ----------
+  var HJQ = 0;
+  function muatHujan() {
+    var z = zonKini(), q = ++HJQ, H = el('hjn'), o = null;
+    try { o = JSON.parse(ls('bfx_hj_' + z) || 'null'); } catch (e) {}
+    H.hidden = false;
+    var segar = o && Date.now() - o.masa < 14 * 60e3;
+    if (o) paparHujan(o, !segar); else { el('hjI').innerHTML = IC.w_awan; teks(el('hjT'), 'Menganalisis peluang hujan…'); teks(el('hjS'), 'Anggaran AI, bukan ramalan rasmi'); }
+    if (segar) return;
+    api({ a: 'hujan', zon: z }, function (r) {
+      if (q !== HJQ || z !== zonKini()) return; // abaikan zon lama
+      if (r.ok && r.ayat) { ls('bfx_hj_' + z, JSON.stringify(r)); kekal(function () { paparHujan(r); }); }
+      else if (!o) H.hidden = true;
+    }, 30000);
   }
-  function tutupWindy() { el('mW').className = 'modal'; el('wFr').textContent = ''; }
+  function paparHujan(o, lama) {
+    el('hjn').className = 'hjn s' + (o.skor >= 75 ? 4 : o.skor >= 50 ? 3 : o.skor >= 30 ? 2 : 1);
+    el('hjI').innerHTML = IC['w_' + o.ikon] || IC.w_awan;
+    teks(el('hjT'), o.ayat);
+    teks(el('hjS'), (lama ? 'Mengemas kini… · ' : 'Dikemas kini ' + jam(o.masa) + ' · ') + 'Anggaran AI, bukan ramalan rasmi');
+  }
+  // ---------- Peta Hujan (Leaflet + OpenStreetMap; lapisan OpenWeather melalui proksi Apps Script) ----------
+  var PETA = null, LAPIS = null;
+  function muatLeaflet(cb) {
+    if (window.L) { cb(); return; }
+    var c = document.createElement('link'); c.rel = 'stylesheet'; c.href = 'leaflet.css'; document.head.appendChild(c);
+    var j = document.createElement('script'); j.src = 'leaflet.js'; j.onload = cb; j.onerror = function () { teks(el('pHB'), 'Peta gagal dimuat. Cuba lagi.'); }; document.head.appendChild(j);
+  }
+  function petaHujan() {
+    var P = el('pHujan');
+    if (!P.hidden) { P.hidden = true; teks(el('pHB'), '🗺️ Peta Hujan'); return; }
+    P.hidden = false; teks(el('pHB'), 'Tutup Peta Hujan');
+    muatLeaflet(function () {
+      var c = (CS && CS.c) || {}, la = c.lat || 2.53, lo = c.lon || 102.4;
+      if (!PETA) {
+        PETA = L.map('pMap', { zoomControl: true, attributionControl: false, minZoom: 5, maxZoom: 10, maxBounds: [[-2, 95], [10, 122]] }).setView([la, lo], 8);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 10, referrerPolicy: 'strict-origin-when-cross-origin' }).addTo(PETA);
+        L.circleMarker([la, lo], { radius: 6, color: '#ff6a00', weight: 2, fillColor: '#ff6a00', fillOpacity: .9 }).addTo(PETA);
+      } else PETA.setView([la, lo], PETA.getZoom());
+      tukarLapis(qa('#pHL button.on')[0].getAttribute('data-lapis'));
+      setTimeout(function () { PETA.invalidateSize(); kanta(); }, 80);
+    });
+  }
+  var LapisOW = null;
+  function tukarLapis(l) {
+    if (!PETA) return;
+    if (!LapisOW) LapisOW = L.GridLayer.extend({ createTile: function (k, done) {
+      var img = document.createElement('img'); img.alt = ''; img.className = 'owt';
+      api({ a: 'tile', l: this.options.l, z: k.z, x: k.x, y: k.y }, function (r) { if (r.ok && r.b64) img.src = 'data:image/png;base64,' + r.b64; done(null, img); }, 20000);
+      return img;
+    } });
+    if (LAPIS) PETA.removeLayer(LAPIS);
+    LAPIS = new LapisOW({ l: l, opacity: .85, minZoom: 5, maxZoom: 10, maxNativeZoom: 10, keepBuffer: 0 }).addTo(PETA);
+    qa('#pHL button').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-lapis') === l); }); kanta();
+  }
+  // Kemas kini DOM tanpa mengubah kedudukan skrol (elak skrol "melompat" semasa info/akaun/cuaca dikemas kini)
+  function kekal(fn) {
+    var y = window.pageYOffset, m = el('main'), t = m ? m.scrollTop : 0;
+    fn();
+    if (Math.abs(window.pageYOffset - y) > 1) window.scrollTo(0, y);
+    if (m && Math.abs(m.scrollTop - t) > 1) m.scrollTop = t;
+  }
+  // Cadangan lembut: pelajar dengan PIN 9 digit lama
+  function cadPin() { el('cadPin').hidden = !(ls('bfx_pin9') === '1' && !ss('bfx_pin9_n')); }
+
   function bukaZon() {
     var z = zonKini(), N = el('zNeg');
     if (!N.options.length) Object.keys(ZON).forEach(function (n) { var o = document.createElement('option'); o.value = n; o.textContent = n; N.appendChild(o); });
@@ -933,6 +1044,7 @@
         if (!ak0) { el('vAuth').className = 'view on'; toast(r.msg || 'Tiada sambungan. Cuba lagi.'); }
       });
     } else { el('vAuth').className = 'view on'; api({ a: 'info' }, function () {}); }
+    tsAwal();
     setTimeout(autoPasang, 2500);
     setInterval(function () { api({ a: 'info' }, function () {}); }, 60000);
     setInterval(function () { if (TOK && !document.hidden) api({ a: 'akaun' }, function (r) { if (r.ok) setAk(r.akaun); }); }, 180000);

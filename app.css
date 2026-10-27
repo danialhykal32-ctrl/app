@@ -744,7 +744,7 @@ button,.lg,.btn,.pill,.ghost,.gb,.ri,.tile,.ask,a.btn,a.lg,[data-act],[data-pg],
 .versi{position:fixed;z-index:95;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;align-items:center;gap:12px;width:max-content;max-width:calc(100% - 24px);padding:8px 8px 8px 16px;border-radius:999px;
 background:rgba(30,18,54,.94);border:1px solid rgba(167,139,250,.45);color:#EDE9FE;font-size:13px;font-weight:600;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);box-shadow:0 18px 40px -16px rgba(2,6,23,.95);animation:pudar .25s ease}
 .versi span{min-width:0}.versi .lg{flex:none;min-height:40px}
-/* solat & cuaca: rangka memuat, amaran, ramalan setiap jam, Windy & WU */
+/* solat & cuaca: rangka memuat, amaran, ramalan setiap jam */
 .sk{display:block;min-height:46px;border-radius:14px;background:linear-gradient(90deg,rgba(237,233,254,.06),rgba(237,233,254,.14),rgba(237,233,254,.06));background-size:200% 100%;animation:sinar 1.2s linear infinite}
 @keyframes sinar{to{background-position:-200% 0}}
 .cjam .sk{min-height:52px}
@@ -758,9 +758,6 @@ background:rgba(30,18,54,.94);border:1px solid rgba(167,139,250,.45);color:#EDE9
 .cjam:empty{display:none}
 .cjam span{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border-radius:12px;background:rgba(15,23,42,.35);border:1px solid var(--br);font-size:10.5px;color:var(--mu)}
 .cjam i{width:20px;height:20px;color:#c4b5fd}.cjam b{font-size:12px;color:var(--tx);font-weight:600}
-.cbtn{display:flex;gap:8px;flex-wrap:wrap}.cbtn .lg{flex:1 1 140px;min-height:44px;font-size:12.5px;padding:0 12px}
-.mwin{max-width:760px}.wfr{margin-top:12px;border-radius:14px;overflow:hidden;background:#0b0614;aspect-ratio:4/3;max-height:70dvh}
-.wfr iframe{display:block;width:100%;height:100%;border:0}
 /* uji laju */
 .lj{display:flex;flex-direction:column}
 .ljm{position:relative;max-width:340px;width:100%;margin:0 auto}
@@ -780,3 +777,62 @@ background:rgba(30,18,54,.94);border:1px solid rgba(167,139,250,.45);color:#EDE9
 .ljnota{margin:0 0 14px;padding-left:18px;font-size:13px;line-height:1.6;color:var(--mu)}.ljnota b{color:var(--tx)}
 .ljsej h4{margin:16px 0 6px;font-size:13px}.ljsej p{margin:0 0 6px;font-size:12px;color:var(--mu)}.ljsej p b{color:var(--tx)}
 @media (max-width:719px){.ljg{grid-template-columns:repeat(2,minmax(0,1fr))}.ljlok{grid-template-columns:1fr}}
+
+/* ================================================================
+   V4 (27/10): kemas — grid 8px, bar atas tetap di phone (ruang dikhaskan, tiada lompatan),
+   rel ikon ikut safe-area & boleh skrol, butang 44px, tulisan ikut ruang
+   ================================================================ */
+html,body{overscroll-behavior-y:none}
+#vDash.view.on{animation:pudar .35s ease backwards} /* opacity sahaja: transform/filter akan "menangkap" bar atas & rel yang fixed */
+#vDash .card{padding:24px}
+.v2r1,.v2r2,.row4{gap:16px;margin-bottom:16px}
+.quad{gap:8px;padding:8px}
+.tile{padding:16px}
+.tile>b{font-size:clamp(20px,2vw,30px);line-height:1.15;overflow-wrap:anywhere;margin:auto 0 8px;max-width:100%}
+.tile small{line-height:1.4}
+#vDash .ch{margin-bottom:8px}
+#vDash .ch h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
+#vDash .hint,#vDash .upd,#vDash .kredit{color:var(--mu2)}
+#vDash .lg,#vDash .pill,#vDash .btn,#vDash .zonb,.rc .lg,#vDash .lg.sm{min-height:44px;border-radius:999px}
+.chart.kosong{align-items:center;justify-content:center;min-height:120px}
+.kosongp{margin:0;color:var(--mu2);font-size:13px}
+/* ramalan pintar hujan */
+.hjn{display:flex;gap:12px;align-items:center;padding:12px;border-radius:16px;margin:0 0 8px;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.28)}
+.hjn.s2{background:rgba(124,58,237,.14);border-color:rgba(167,139,250,.35)}
+.hjn.s3{background:rgba(124,58,237,.24);border-color:rgba(167,139,250,.55)}
+.hjn.s4{background:rgba(239,68,68,.16);border-color:rgba(248,113,113,.55)}
+.hji{width:40px;height:40px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,.45);color:#c4b5fd}
+.hji svg{width:22px;height:22px}
+.hjn>div{min-width:0}.hjn b{display:block;font-size:13px;line-height:1.4;font-weight:600}.hjn small{display:block;font-size:11px;color:var(--mu2);margin-top:2px}
+/* OpenWeather: angin, awan, hujan, lembap */
+.cow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 8px}
+.cow span{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:12px;background:rgba(15,23,42,.35);border:1px solid var(--br);min-width:0;text-align:center}
+.cow small{font-size:10.5px;color:var(--mu2)}.cow b{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#pHB{margin:0 0 8px}
+.phj{margin:0 0 8px}.phl{margin:0 0 8px}
+.pmap{height:240px;border-radius:14px;overflow:hidden;background:#0b0614;border:1px solid var(--br);touch-action:none}
+.pmap .owt{image-rendering:auto}
+.kredit{display:block;font-size:10.5px;color:var(--mu2);margin-top:4px}
+.leaflet-bar a,.leaflet-bar a:hover{background:#1e1236;color:#EDE9FE;border-bottom-color:rgba(237,233,254,.15)}
+.leaflet-bar{border:1px solid rgba(237,233,254,.2)!important}
+/* Cloudflare Turnstile (biasanya tidak kelihatan) */
+.ts{display:flex;justify-content:center;margin-top:8px}.ts:empty{display:none}
+/* cadangan PIN 6 digit */
+.cadpin{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;margin-bottom:16px}
+.cadpin>div{flex:1 1 180px;min-width:0}.cadpin b{display:block;font-size:14px}.cadpin small{display:block;font-size:12px;color:var(--mu)}
+.cpi{font-size:22px}
+@media (max-width:719px){
+  #vDash{padding:calc(78px + env(safe-area-inset-top)) 8px calc(24px + env(safe-area-inset-bottom)) 76px}
+  #vDash .topbar{position:fixed;z-index:28;top:calc(8px + env(safe-area-inset-top));left:76px;right:8px;height:54px;min-height:54px;background:rgba(22,12,42,.94)}
+  #vDash .rail{top:calc(8px + env(safe-area-inset-top));bottom:calc(8px + env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain;justify-content:flex-start;scrollbar-width:none}
+  #vDash .rail::-webkit-scrollbar{display:none}
+  #vDash .rail>.ri:first-child{margin-top:auto}#vDash .rail>.ri.out{margin-bottom:auto}
+  #vDash .notch{right:1px}
+  .stage{padding:16px 8px}
+  #vDash .card{padding:16px}
+  .v2r1,.v2r2,.row4{gap:16px;margin-bottom:16px}
+  .tile{min-height:112px}
+  .tile>b{font-size:clamp(18px,5.4vw,26px)}
+  .cow b{font-size:11.5px}
+}
+@media (max-width:379px){#vDash .topbar{left:70px}}

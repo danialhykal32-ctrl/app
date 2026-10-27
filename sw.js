@@ -1,7 +1,7 @@
 // BlackFox WiFi: service worker. Simpan "kulit" app sahaja; data sentiasa dari API Google (tidak disimpan).
 // Network-first + cache:'no-cache' untuk halaman, app.js & app.css: versi baru diambil terus bila online.
 // SW baru menunggu sehingga pelajar tekan "Kemas kini" (mesej 'skip'), kemudian app dimuat semula sekali.
-const V = 'bfx-v9';
+const V = 'bfx-v10';
 const SHELL = ['./', './index.html', './app.css', './app.js', './bg.svg', './manifest.webmanifest', './speedtest.js', './bfc180.png', './bfc512.png', './bfc512m.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(SHELL.map(u => new Request(u, { cache: 'reload' }))))); });
 self.addEventListener('message', e => { if (e.data && e.data.t === 'skip') self.skipWaiting(); });

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://speed.cloudflare.com; media-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-src https://embed.windy.com">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://speed.cloudflare.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; media-src 'self'; worker-src 'self'; form-action 'none'; base-uri 'none'; object-src 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#0b0614">
 <meta name="color-scheme" content="dark">
@@ -18,6 +18,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap">
 <link rel="stylesheet" href="app.css">
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 </head>
 <body>
 <div class="bg"></div>
@@ -43,7 +44,8 @@
           <h2>Cipta Akaun</h2>
           <label class="fld"><i data-ic="user"></i><input class="in" id="dn" placeholder="Nama Penuh" autocomplete="name"></label>
           <label class="fld"><i data-ic="card"></i><input class="in" id="dm" placeholder="No. Kad Matrik" autocapitalize="characters"></label>
-          <label class="fld"><i data-ic="lock"></i><input class="in" id="dp" type="password" inputmode="numeric" maxlength="9" placeholder="PIN 9 digit" data-digit autocomplete="new-password"></label>
+          <label class="fld"><i data-ic="lock"></i><input class="in" id="dp" type="password" inputmode="numeric" maxlength="6" placeholder="PIN 6 digit" data-digit autocomplete="new-password"></label>
+          <div class="ts" id="tsD"></div>
           <button class="btn" type="submit">Cipta Akaun</button>
           <div class="msg" id="dmsg"></div>
           <p class="note">Sudah ada akaun? <a href="#" data-act="tab1">Log masuk</a></p>
@@ -53,7 +55,8 @@
         <form class="pane p1" data-form="masuk" autocomplete="on">
           <h2>Log Masuk</h2>
           <label class="fld"><i data-ic="card"></i><input class="in" id="lm" placeholder="No. Kad Matrik" autocapitalize="characters" autocomplete="username"></label>
-          <label class="fld"><i data-ic="lock"></i><input class="in" id="lp" type="password" placeholder="PIN 9 digit" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+          <label class="fld"><i data-ic="lock"></i><input class="in" id="lp" type="password" placeholder="PIN" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+          <div class="ts" id="tsL"></div>
           <button class="btn" type="submit">Log Masuk</button>
           <div class="msg" id="lmsg"></div>
           <p class="note">Lupa PIN? <a href="#" data-act="aiLupa">Tanya AI</a></p>
@@ -98,6 +101,7 @@
           <div><h1 class="wr" id="salam">Assalamualaikum</h1><p id="bsub">WiFi FOX ULTRA 5G sedia digunakan.</p></div>
           <div class="pha"><button class="lg sm" data-act="resitPg"><i data-ic="receipt"></i><span>Hantar Resit</span></button></div>
         </div>
+        <div class="cadpin card a" id="cadPin" hidden><span class="cpi">🔑</span><div><b>Tukar ke PIN 6 digit?</b><small>Lebih mudah diingat. PIN 9 digit lama masih boleh digunakan.</small></div><button class="lg sm pri" data-pg="pin">Tukar</button><button class="lg sm" data-act="pin9Tutup">Nanti</button></div>
         <div class="v2r1">
           <div class="card a c-baki">
             <div class="ch"><span class="lb">Baki Kuota</span><span class="chip" id="xp">-</span></div>
@@ -150,11 +154,19 @@
               </div>
               <div class="card a c-cuaca">
                 <div class="ch"><h3>🌦️ Cuaca</h3><button class="zonb" data-act="zon" id="zonB2" aria-label="Tukar zon">📍 <span id="zonN2">Tampin, Jempol</span> ▾</button></div>
+                <div class="hjn" id="hjn" hidden><span class="hji" id="hjI"></span><div><b id="hjT">Menganalisis peluang hujan…</b><small id="hjS">Anggaran AI, bukan ramalan rasmi</small></div></div>
                 <div class="camr" id="cAmaran" role="alert" hidden></div>
                 <div class="cnow"><span class="cic" id="cIk"></span><b id="cSuhu">-</b><div class="cdt"><p id="cDesc">-</p><small id="cHujan"></small></div></div>
                 <p class="cram" id="cRamal" hidden></p>
                 <div class="cjam" id="cJam"></div>
-                <div class="cbtn"><button class="lg sm" data-act="windy">🌀 Peta Windy</button><a class="lg sm" id="cWU" href="https://www.wunderground.com/" target="_blank" rel="noopener">🌦️ Weather Underground</a></div>
+                <div class="cow" id="cOw" hidden><span><small id="owAL">Angin</small><b id="owA">–</b></span><span><small>Awan</small><b id="owC">–</b></span><span><small>Hujan</small><b id="owH">–</b></span><span><small>Lembap</small><b id="owL">–</b></span></div>
+                <button class="lg sm full" data-act="petaHujan" id="pHB">🗺️ Peta Hujan</button>
+                <div class="phj" id="pHujan" hidden>
+                  <div class="seg phl" id="pHL"><span class="knob"></span><button class="on" data-lapis="precipitation_new">Hujan</button><button data-lapis="clouds_new">Awan</button><button data-lapis="wind_new">Angin</button></div>
+                  <div class="pmap" id="pMap"></div>
+                  <small class="kredit">Peta © OpenStreetMap contributors · Weather data © OpenWeather</small>
+                </div>
+                <small class="kredit" id="cOwk" hidden>Weather data © OpenWeather</small>
                 <small class="upd" id="cUpd"></small>
               </div>
             </div>
@@ -181,7 +193,8 @@
             <div class="rs" id="rsC">
               <b>Sudah bayar tapi belum aktif?</b>
               <small>Hantar screenshot resit ToyyibPay. AI baca resit dan sahkan terus dengan ToyyibPay. Gambar tidak disimpan.</small>
-              <input type="file" id="rsF" accept="image/*" hidden>
+              <input type="file" id="rsF" accept="image/jpeg,image/png" hidden>
+              <div class="ts" id="tsR"></div>
               <button class="btn" data-act="resit" id="rsB">Hantar Resit</button>
               <div class="msg" id="rsM"></div>
             </div>
@@ -191,12 +204,13 @@
 
       <!-- TUKAR PIN -->
       <div class="page" id="pg-pin">
-        <div class="ph"><div><h1 class="wr">Tukar PIN</h1><p>PIN digunakan untuk log masuk WiFi dan app. Mesti tepat 9 digit nombor.</p></div></div>
+        <div class="ph"><div><h1 class="wr">Tukar PIN</h1><p>PIN untuk log masuk WiFi dan app. Tepat 6 digit nombor.</p></div></div>
         <div class="sv">
           <form class="card a pform" data-form="pin">
             <div class="ch"><h3>PIN Baru</h3><span class="ib"><i data-ic="key"></i></span></div>
-            <label class="fld"><i data-ic="lock"></i><input class="in" id="np" type="password" inputmode="numeric" maxlength="9" placeholder="PIN baru (9 digit)" data-digit autocomplete="new-password"></label>
-            <label class="fld"><i data-ic="lock"></i><input class="in" id="np2" type="password" inputmode="numeric" maxlength="9" placeholder="Taip semula PIN baru" data-digit autocomplete="new-password"></label>
+            <label class="fld"><i data-ic="lock"></i><input class="in" id="np" type="password" inputmode="numeric" maxlength="6" placeholder="PIN baru (6 digit)" data-digit autocomplete="new-password"></label>
+            <label class="fld"><i data-ic="lock"></i><input class="in" id="np2" type="password" inputmode="numeric" maxlength="6" placeholder="Taip semula PIN baru" data-digit autocomplete="new-password"></label>
+            <div class="ts" id="tsP"></div>
             <button class="btn" type="submit">Simpan PIN</button>
             <div class="msg" id="pmsg"></div>
           </form>
@@ -237,6 +251,7 @@
           <div class="card a chat">
             <div class="log" id="log"></div>
             <div class="qk" id="qk"><button>Kenapa internet saya lambat?</button><button>Saya lupa PIN</button><button>Macam mana nak tambah kuota?</button><button>Kenapa asyik diminta log masuk?</button><button>Apa manfaat sambung Telegram?</button></div>
+            <div class="ts" id="tsC"></div>
             <form class="cin" data-form="chat"><input id="cq" placeholder="Tanya apa sahaja..." autocomplete="off"><button class="send" type="submit" aria-label="Hantar"><i data-ic="arrowu"></i></button></form>
           </div>
           <aside class="card a coll">
@@ -367,14 +382,6 @@
   </div>
 </div>
 <!-- Pilih zon waktu solat (disimpan dalam phone sahaja) -->
-<div class="modal" id="mW" role="dialog" aria-modal="true" aria-labelledby="mWT">
-  <div class="mbox mwin">
-    <button class="mx" data-act="wTutup" aria-label="Tutup">&times;</button>
-    <h3 id="mWT">🌀 Peta Windy</h3>
-    <div class="wfr" id="wFr"></div>
-    <p class="mnote">Peta hujan &amp; angin oleh Windy.com. Dimuat hanya bila dibuka.</p>
-  </div>
-</div>
 <div class="modal" id="mZ" role="dialog" aria-modal="true" aria-labelledby="mZT">
   <div class="mbox">
     <button class="mx" data-act="zTutup" aria-label="Tutup">&times;</button>

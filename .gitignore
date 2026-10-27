@@ -1,0 +1,14 @@
+# Jangan commit rahsia / fail tempatan
+.env
+.env.*
+*.pem
+*.key
+*.p12
+secrets*.json
+credentials*.json
+.clasp.json
+.clasprc.json
+node_modules/
+.DS_Store
+Thumbs.db
+*.log

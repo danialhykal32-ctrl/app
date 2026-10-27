@@ -1008,7 +1008,10 @@
     el('hjn').className = 'hjn s' + (o.skor >= 75 ? 4 : o.skor >= 50 ? 3 : o.skor >= 30 ? 2 : 1);
     el('hjI').innerHTML = IC['w_' + o.ikon] || IC.w_awan;
     teks(el('hjT'), o.ayat);
-    teks(el('hjS'), (lama ? 'Mengemas kini… · ' : 'Dikemas kini ' + jam(o.masa) + ' · ') + 'Anggaran automatik, bukan ramalan rasmi');
+    var P = el('hjP'); P.hidden = !o.panas; teks(P, o.panas || '');
+    teks(el('hjS'), (lama ? 'Mengemas kini…' : 'Dikemas kini ' + jam(o.masa)) + (o.ketepatan ? ' · ' + o.ketepatan : ''));
+    var K = el('hjK'), sb = (o.sumber || []).join(', '); K.hidden = false;
+    teks(K, 'Anggaran automatik, bukan ramalan rasmi' + (sb ? ' · ' + sb : '') + (o.kredit ? ' · ' + o.kredit : ''));
   }
   // Kemas kini DOM tanpa mengubah kedudukan skrol (elak skrol "melompat" semasa info/akaun/cuaca dikemas kini)
   function kekal(fn) {

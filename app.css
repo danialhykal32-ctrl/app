@@ -1004,3 +1004,7 @@ i[data-ic] svg{stroke-width:1.5}
 #pg-profil .crow{display:flex;gap:12px;align-items:center;padding:10px 0}
 #pg-profil .pfn small{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
 #pg-ai .chb .ib{width:44px;height:44px;font-size:22px;line-height:1}
+/* ramalan hujan gabungan: baris panas terik & kredit sumber */
+.hjn .hjp{margin-top:4px;color:#fde68a}
+.hjn .hjk{opacity:.85}
+.hjn [hidden]{display:none}

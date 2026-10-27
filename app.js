@@ -996,7 +996,7 @@
     try { o = JSON.parse(ls('bfx_hj_' + z) || 'null'); } catch (e) {}
     H.hidden = false;
     var segar = o && Date.now() - o.masa < 14 * 60e3;
-    if (o) paparHujan(o, !segar); else { el('hjI').innerHTML = IC.w_awan; teks(el('hjT'), 'Menganalisis peluang hujan…'); teks(el('hjS'), 'Anggaran AI, bukan ramalan rasmi'); }
+    if (o) paparHujan(o, !segar); else { el('hjI').innerHTML = IC.w_awan; teks(el('hjT'), 'Menganalisis peluang hujan…'); teks(el('hjS'), 'Anggaran automatik, bukan ramalan rasmi'); }
     if (segar) return;
     api(lokReq(null, 'hujan'), function (r) {
       if (q !== HJQ || z !== lokKey()) return; // abaikan lokasi lama
@@ -1008,7 +1008,7 @@
     el('hjn').className = 'hjn s' + (o.skor >= 75 ? 4 : o.skor >= 50 ? 3 : o.skor >= 30 ? 2 : 1);
     el('hjI').innerHTML = IC['w_' + o.ikon] || IC.w_awan;
     teks(el('hjT'), o.ayat);
-    teks(el('hjS'), (lama ? 'Mengemas kini… · ' : 'Dikemas kini ' + jam(o.masa) + ' · ') + 'Anggaran AI, bukan ramalan rasmi');
+    teks(el('hjS'), (lama ? 'Mengemas kini… · ' : 'Dikemas kini ' + jam(o.masa) + ' · ') + 'Anggaran automatik, bukan ramalan rasmi');
   }
   // Kemas kini DOM tanpa mengubah kedudukan skrol (elak skrol "melompat" semasa info/akaun/cuaca dikemas kini)
   function kekal(fn) {

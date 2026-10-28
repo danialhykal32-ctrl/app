@@ -48,7 +48,15 @@ const KES = [
       await ctx.route(/fonts\.googleapis\.com/, r => r.fulfill({ contentType: 'text/css', headers: CORS, body: '' }));
       await ctx.route(/fonts\.gstatic\.com/, r => r.fulfill({ status: 204, body: '' }));
       await ctx.route(/challenges\.cloudflare\.com/, r => r.fulfill({ contentType: 'text/javascript', body: TS }));
-      await ctx.route(/script\.google(usercontent)?\.com/, r => { let q = {}; try { q = JSON.parse(r.request().postData() || '{}').req || {}; } catch (e) {} r.fulfill({ contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify(api(q)) }); });
+      await ctx.route(/script\.google(usercontent)?\.com/, r => { let q = {}; try { q = JSON.parse(r.request().postData() || '{}').req || {}; } catch (e) {} API_LOG.push(r.request().method() + ' ' + (q.a || '?')); r.fulfill({ contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify(api(q)) }); });
+      await pg.addInitScript(() => { // diagnostik: pelanggaran CSP & siapa padam token sesi
+        window.__diag = [];
+        document.addEventListener('securitypolicyviolation', e => window.__diag.push('CSP ' + e.violatedDirective + ' src=' + (e.sourceFile || '') + ':' + (e.lineNumber || '') + ' blocked=' + (e.blockedURI || '') + ' sample=' + String(e.sample || '').slice(0, 80)));
+        try { const rm = Storage.prototype.removeItem, cl = Storage.prototype.clear;
+          Storage.prototype.removeItem = function (k) { if (k === 'bfx_t') window.__diag.push('removeItem(bfx_t) ' + String(new Error().stack || '').split('\n').slice(1, 4).join(' < ')); return rm.call(this, k); };
+          Storage.prototype.clear = function () { window.__diag.push('localStorage.clear()'); return cl.call(this); }; } catch (e) {}
+      });
+      const API_LOG = [];
       await pg.addInitScript(([ls, sa]) => { try { localStorage.setItem('bfx_tolak', String(Date.now())); for (const x in ls) localStorage.setItem(x, ls[x]); } catch (e) {} if (sa) try { Object.defineProperty(navigator, 'standalone', { value: true }); } catch (e) {} }, [k.ls, !!k.sa]);
       const url = 'http://localhost:' + srv.address().port + '/app/?src=app';
       let st = null;
@@ -57,14 +65,15 @@ const KES = [
         await pg.reload({ waitUntil: 'load', timeout: 30000 }); await pg.waitForTimeout(3500); // kali kedua: melalui service worker
         st = await pg.evaluate(() => {
           const v = document.querySelector('.view.on'), r = v ? v.getBoundingClientRect() : null, g = document.getElementById('bfxGagal');
-          return { auth: document.getElementById('vAuth').className, dash: document.getElementById('vDash').className, t: !!localStorage.getItem('bfx_t'), ralat: window.bfxRalat ? window.bfxRalat() : [], view: v ? v.id : '', w: r ? Math.round(r.width) : 0, h: r ? Math.round(r.height) : 0, teks: (v ? v.innerText : '').replace(/\s+/g, ' ').trim().slice(0, 80), gagal: !!(g && g.offsetParent),
+          return { diag: (window.__diag || []).slice(0, 8), auth: document.getElementById('vAuth').className, dash: document.getElementById('vDash').className, t: !!localStorage.getItem('bfx_t'), ralat: window.bfxRalat ? window.bfxRalat() : [], view: v ? v.id : '', w: r ? Math.round(r.width) : 0, h: r ? Math.round(r.height) : 0, teks: (v ? v.innerText : '').replace(/\s+/g, ' ').trim().slice(0, 80), gagal: !!(g && g.offsetParent),
             sw: !!(navigator.serviceWorker && navigator.serviceWorker.controller), bg: getComputedStyle(document.body).backgroundColor };
         });
       } catch (e) { E.push('MUAT ' + e.message.split('\n')[0]); }
       await pg.screenshot({ path: path.join(OUT, nama + '-' + k.n + '.png'), caret: 'initial' }).catch(() => {}); // caret 'initial': elak <style> suntikan Playwright (CSP)
       const id = nama + ' / ' + k.n;
       const kosong = !st || !st.view || (k.dash && !/\bon\b/.test(st.dash)) || (k.dash && /\bon\b/.test(st.auth)) || st.w < 100 || st.h < 100 || st.teks.length < 10 || st.gagal || (k.dash ? st.view !== 'vDash' : st.view !== 'vAuth');
-      if (kosong) { gagal.push(id + ': SKRIN KOSONG / salah ' + JSON.stringify(st)); LOG.slice(-12).forEach(x => gagal.push(id + ': log ' + x)); }
+      if (st && st.diag && st.diag.length) st.diag.forEach(x => gagal.push(id + ': diag ' + x));
+      if (kosong) { gagal.push(id + ': SKRIN KOSONG / salah ' + JSON.stringify(st) + ' API=' + API_LOG.join(',')); LOG.slice(-12).forEach(x => gagal.push(id + ': log ' + x)); }
       E.forEach(x => gagal.push(id + ': ' + x));
       if (!kosong && !E.length) lulus.push(id + ' ✓ ' + st.view + ' "' + st.teks.slice(0, 40) + '" sw=' + st.sw);
       await ctx.close();

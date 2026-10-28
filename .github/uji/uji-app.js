@@ -52,6 +52,7 @@ const KES = [
       await pg.addInitScript(() => { // diagnostik: pelanggaran CSP & siapa padam token sesi
         window.__diag = [];
         document.addEventListener('securitypolicyviolation', e => window.__diag.push('CSP ' + e.violatedDirective + ' src=' + (e.sourceFile || '') + ':' + (e.lineNumber || '') + ' blocked=' + (e.blockedURI || '') + ' sample=' + String(e.sample || '').slice(0, 80)));
+        try { const f0 = window.fetch; window.fetch = function () { return f0.apply(this, arguments).then(r => { try { r.clone().text().then(t => { if (/keluar/.test(t)) window.__diag.push('respons keluar: ' + t.slice(0, 160)); }); } catch (e) {} return r; }); }; } catch (e) {}
         try { const rm = Storage.prototype.removeItem, cl = Storage.prototype.clear;
           Storage.prototype.removeItem = function (k) { if (k === 'bfx_t') window.__diag.push('removeItem(bfx_t) ' + String(new Error().stack || '').split('\n').slice(1, 4).join(' < ')); return rm.call(this, k); };
           Storage.prototype.clear = function () { window.__diag.push('localStorage.clear()'); return cl.call(this); }; } catch (e) {}

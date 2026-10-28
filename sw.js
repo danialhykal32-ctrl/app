@@ -3,7 +3,7 @@
 // atau gagal, guna salinan cache; jika tiada langsung, halaman "Tiada sambungan" (bukan skrin kosong).
 // Safari menolak respons SW yang "redirected" untuk navigasi (skrin putih/kelabu) -> sentiasa dibersihkan.
 // SW baru menunggu sehingga pelajar tekan "Kemas kini" (mesej 'skip'), atau app ditutup & dibuka semula.
-const V = 'bfx-v13';
+const V = 'bfx-v14';
 const SHELL = ['./', './index.html', './boot.js', './app.css', './app.js', './bg.svg', './manifest.webmanifest', './speedtest.js', './ikon.svg', './ikon-180.png', './ikon-192.png', './ikon-512.png', './ikon-512m.png', './maskot.svg'];
 self.addEventListener('install', e => {
   // satu fail gagal TIDAK menggagalkan pemasangan (addAll akan gagal semua)

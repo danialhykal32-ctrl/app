@@ -58,6 +58,19 @@ const KES = [
           Storage.prototype.clear = function () { window.__diag.push('localStorage.clear()'); return cl.call(this); }; } catch (e) {}
       });
       const API_LOG = [];
+      // Mock API dalam halaman: WebKit hantar fetch melalui service worker dan Playwright tidak dapat memintasnya (had Playwright),
+      // jadi fetch ke Apps Script dibalas oleh fungsi Node ini (berfungsi dalam Chromium & WebKit, dengan SW aktif).
+      await pg.exposeFunction('__bfxMockApi', q => { API_LOG.push('fetch ' + (q && q.a || '?')); return JSON.stringify(api(q || {})); });
+      await pg.addInitScript(() => {
+        const f0 = window.fetch;
+        window.fetch = function (u, o) {
+          if (/script\.google(usercontent)?\.com/.test(String(u && u.url || u))) {
+            let q = {}; try { q = JSON.parse((o && o.body) || '{}').req || {}; } catch (e) {}
+            return window.__bfxMockApi(q).then(t => new Response(t, { status: 200, headers: { 'Content-Type': 'application/json' } }));
+          }
+          return f0.apply(this, arguments);
+        };
+      });
       await pg.addInitScript(([ls, sa]) => { try { localStorage.setItem('bfx_tolak', String(Date.now())); for (const x in ls) localStorage.setItem(x, ls[x]); } catch (e) {} if (sa) try { Object.defineProperty(navigator, 'standalone', { value: true }); } catch (e) {} }, [k.ls, !!k.sa]);
       const url = 'http://localhost:' + srv.address().port + '/app/?src=app';
       let st = null;

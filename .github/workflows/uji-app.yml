@@ -1,0 +1,33 @@
+name: Uji App (Playwright)
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  uji:
+    name: Buka app di iPhone (Chromium + WebKit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Pasang Playwright
+        run: |
+          npm install --no-save --no-audit --no-fund playwright@1.49.1
+          npx playwright install --with-deps chromium webkit
+      - name: Uji app (gagal jika ralat console / skrin kosong)
+        run: node .github/uji/uji-app.js
+      - name: Simpan screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshot-uji-app
+          path: hasil-uji/
+          retention-days: 7

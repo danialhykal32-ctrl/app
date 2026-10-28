@@ -41,12 +41,14 @@ const KES = [
     for (const k of KES) {
       const ctx = await br.newContext({ ...devices['iPhone 13'] }), pg = await ctx.newPage(), E = [];
       pg.on('pageerror', e => E.push('PAGEERROR ' + e.message));
-      pg.on('console', m => { if (m.type() === 'error') E.push('console.error ' + m.text().slice(0, 300)); });
+      const LOG = [];
+      pg.on('console', m => { LOG.push(m.type() + ': ' + m.text().slice(0, 200)); if (m.type() === 'error') E.push('console.error ' + m.text().slice(0, 300)); });
       pg.on('response', r => { if (r.status() >= 400) E.push('HTTP ' + r.status() + ' ' + r.url()); });
-      await ctx.route(/fonts\.googleapis\.com/, r => r.fulfill({ contentType: 'text/css', body: '' }));
+      const CORS = { 'Access-Control-Allow-Origin': '*' };
+      await ctx.route(/fonts\.googleapis\.com/, r => r.fulfill({ contentType: 'text/css', headers: CORS, body: '' }));
       await ctx.route(/fonts\.gstatic\.com/, r => r.fulfill({ status: 204, body: '' }));
       await ctx.route(/challenges\.cloudflare\.com/, r => r.fulfill({ contentType: 'text/javascript', body: TS }));
-      await ctx.route(/script\.google(usercontent)?\.com/, r => { let q = {}; try { q = JSON.parse(r.request().postData() || '{}').req || {}; } catch (e) {} r.fulfill({ contentType: 'application/json', body: JSON.stringify(api(q)) }); });
+      await ctx.route(/script\.google(usercontent)?\.com/, r => { let q = {}; try { q = JSON.parse(r.request().postData() || '{}').req || {}; } catch (e) {} r.fulfill({ contentType: 'application/json', headers: { 'Access-Control-Allow-Origin': '*' }, body: JSON.stringify(api(q)) }); });
       await pg.addInitScript(([ls, sa]) => { try { localStorage.setItem('bfx_tolak', String(Date.now())); for (const x in ls) localStorage.setItem(x, ls[x]); } catch (e) {} if (sa) try { Object.defineProperty(navigator, 'standalone', { value: true }); } catch (e) {} }, [k.ls, !!k.sa]);
       const url = 'http://localhost:' + srv.address().port + '/app/?src=app';
       let st = null;
@@ -55,14 +57,14 @@ const KES = [
         await pg.reload({ waitUntil: 'load', timeout: 30000 }); await pg.waitForTimeout(3500); // kali kedua: melalui service worker
         st = await pg.evaluate(() => {
           const v = document.querySelector('.view.on'), r = v ? v.getBoundingClientRect() : null, g = document.getElementById('bfxGagal');
-          return { view: v ? v.id : '', w: r ? Math.round(r.width) : 0, h: r ? Math.round(r.height) : 0, teks: (v ? v.innerText : '').replace(/\s+/g, ' ').trim().slice(0, 80), gagal: !!(g && g.offsetParent),
+          return { auth: document.getElementById('vAuth').className, dash: document.getElementById('vDash').className, t: !!localStorage.getItem('bfx_t'), ralat: window.bfxRalat ? window.bfxRalat() : [], view: v ? v.id : '', w: r ? Math.round(r.width) : 0, h: r ? Math.round(r.height) : 0, teks: (v ? v.innerText : '').replace(/\s+/g, ' ').trim().slice(0, 80), gagal: !!(g && g.offsetParent),
             sw: !!(navigator.serviceWorker && navigator.serviceWorker.controller), bg: getComputedStyle(document.body).backgroundColor };
         });
       } catch (e) { E.push('MUAT ' + e.message.split('\n')[0]); }
-      await pg.screenshot({ path: path.join(OUT, nama + '-' + k.n + '.png') }).catch(() => {});
+      await pg.screenshot({ path: path.join(OUT, nama + '-' + k.n + '.png'), caret: 'initial' }).catch(() => {}); // caret 'initial': elak <style> suntikan Playwright (CSP)
       const id = nama + ' / ' + k.n;
-      const kosong = !st || !st.view || st.w < 100 || st.h < 100 || st.teks.length < 10 || st.gagal || (k.dash ? st.view !== 'vDash' : st.view !== 'vAuth');
-      if (kosong) gagal.push(id + ': SKRIN KOSONG / salah ' + JSON.stringify(st));
+      const kosong = !st || !st.view || (k.dash && !/\bon\b/.test(st.dash)) || (k.dash && /\bon\b/.test(st.auth)) || st.w < 100 || st.h < 100 || st.teks.length < 10 || st.gagal || (k.dash ? st.view !== 'vDash' : st.view !== 'vAuth');
+      if (kosong) { gagal.push(id + ': SKRIN KOSONG / salah ' + JSON.stringify(st)); LOG.slice(-12).forEach(x => gagal.push(id + ': log ' + x)); }
       E.forEach(x => gagal.push(id + ': ' + x));
       if (!kosong && !E.length) lulus.push(id + ' ✓ ' + st.view + ' "' + st.teks.slice(0, 40) + '" sw=' + st.sw);
       await ctx.close();
